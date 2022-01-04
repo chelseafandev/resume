@@ -1,7 +1,7 @@
 # 이준행
 
 C/C++ & Go 백엔드 개발자  
-:link:  https://chelseafadev.github.io  
+:link:  https://chelseafandev.github.io  
 
 ---
 

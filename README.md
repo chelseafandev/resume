@@ -80,7 +80,11 @@ C/C++ & Go 백엔드 개발자
 
 ### REST API 설계 및 HTTPs서버 구현
 
+### 삼성전자 R&D WebSG/DLP 프로젝트 참여
+
 ### Hyperscan API를 활용한 정규표현식 패턴 처리 라이브러리 제작
+
+### 
 
 ---
 

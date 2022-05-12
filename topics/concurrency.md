@@ -14,7 +14,7 @@ https://stackoverflow.com/questions/8735800/implementing-a-lock-free-queue-for-a
 
 > Can this be achieved in a lock-less manner? i could not find a direct reference to this particular problem on the net.
 
-채택된 답변의 내용은 Enqueue or Dequeue 에만 lock을 걸어 사용한다면 성능이 그리 떨어지지는 않을거라고 보고있음. 또한 lock free queue에 데이터가 채워지는 속도가 매우 빠른 경우라면 I/O 처리가 그 속도를 따라가지 못할것으로 언급하고있음(lock이 아닌 다른 부분에서 문제가 있을 가능성을 제기하는군😨)
+채택된 답변의 내용은 Enqueue or Dequeue 에만 lock을 걸어 사용(and 아닌가?)한다면 성능이 그리 떨어지지는 않을거라고 보고있음. 또한 lock free queue에 데이터가 채워지는 속도가 매우 빠른 경우라면 I/O 처리가 그 속도를 따라가지 못할것으로 언급하고있음(lock이 아닌 다른 부분에서 문제가 있을 가능성을 제기하는군😨)
 
 > If you find that using a lock in this case is too slow, you have a much bigger problem. A lock, when it's not contended, takes about 75 nanoseconds on my system (2.0 GHz Core 2 Quad). When it's contended, of course, it's going to take somewhat longer. But since the lock is just protecting a call to Enqueue or Dequeue, it's unlikely that the total time for a log write will be much more than that 75 nanoseconds.
 
@@ -23,7 +23,26 @@ https://stackoverflow.com/questions/8735800/implementing-a-lock-free-queue-for-a
 > I have a multi-threaded application that writes on the order of 200 log entries a second to a Queue<string> that's protected by a simple lock. I've never noticed any significant lock contention, and processing isn't slowed in the least bit. That 75 ns is dwarfed by the time it takes to do everything else.
 
 
----
+아래 질문에 대한 답변에서는 lock를 효율적으로 사용하기 위한 방법으로 2개를 큐를 사용하여 하나의 큐에는 `writer`가 계속해서 push하고 `reader`가 큐에 접근하여 데이터를 pop하려고 할때 2개의 큐를 **swap**하는 방식을 제시하고 있음
+https://stackoverflow.com/questions/4029448/thread-safety-for-stl-queue
+
+[Thread safety for STL queue](https://stackoverflow.com/questions/4029448/thread-safety-for-stl-queue)
+
+> As others have already mentioned, standard containers are not required to guarantee thread safety so what you're asking for cannot be implemented portably. You can reduce the time your reader thread is locking the writers out by using 2 queues and a queue pointer that indicates the queue that is currently in use by the writers.
+
+Each writer would:
+
+- Acquire lock
+- Push element(s) into the queue currently pointed to by the queue pointer
+- Release lock
+
+The reader can then do the following:
+
+- Acquire lock
+- Switch queue pointer to point to the second queue
+- Release lock
+- Process elements from the first queue
+
 
 https://qa.ostack.cn/qa/?qa=890294/
 구글링하다보니 Boost의 lockfree queue 사용하는 경우가 STL queue를 사용하는 것보다 성능적으로 떨어졌다는 글이 있던데 한번 가지고 와봤다. (2021.10.24에 올라온 글이니 비교적 최신이다)

@@ -103,8 +103,12 @@ C/C++ & Go 백엔드 개발자
 ### Intel Hyperscan을 활용한 정규표현식 패턴 매칭 라이브러리 제작
 
 - 고성능 다중 정규표현식 매칭 라이브러리인 Intel Hyperscan을 활용하여 특정 도메인 환경에 맞게 정규표현식 패턴 매칭 기능을 사용할 수 있도록 하는 라이브러리 제작  
-- 
-- 성능 개선을 위한 고려 사항들
+- 구현 과정에서 중요하게 고려된 사항들
+    - Thread-Safe인가?
+    - 불필요한 Hyperscan Pattern DB compile을 어떻게 줄일 수 있을까?
+    - Hyperscan Pattern DB에 compile이 불가능한 패턴을 어떻게 필터링 할 수 있을까?
+- 성능 개선(패턴 검출 속도 향상)을 위한 고려 사항들
+    - Hyperscan Pattern DB를 어떻게 분리할 것 인가?
     - 어떻게 하면 Lock 구간의 최소화할 수 있을까?
         - step1. mutex
         : 검출 함수 내에 mutex를 설정함
@@ -112,6 +116,21 @@ C/C++ & Go 백엔드 개발자
         : 검출 함수를 호출할때 마다 scratch space를 새롭게 할당하도록 함
         - step3. scratch space clone by thread
         : 검출 함수를 호출하는 thread id별로 복제(clone)된 scratch space를 관리하도록 함
+
+<br>
+
+### AgentMate 개발(추후 제목 변경 필요함!)
+
+- Golang을 사용하여 기존 (Java와 C/C++로 작업된)레거시 코드를 대체할 수 있는 모듈 개발
+- 최초 요구사항 분석에서부터 상위 및 세부설계 과정 전체를 경험
+- 구현 과정에서 고민했던 부분들
+  - Golang 프로젝트를 어떻게 구조화(프로젝트 레이아웃)할 것인가?
+  - 모듈과 패키지의 차이점은?
+  - 패키지들을 구분하는 기준은?
+- REST API 서버 개발
+  - 올바른 REST API 설계 방식에 대한 이해
+  - pre-compressed resource
+  - API 문서화 방식 with Swagger
 
 ---
 

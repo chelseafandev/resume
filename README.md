@@ -131,6 +131,20 @@ C/C++ & Go 백엔드 개발자
   - 올바른 REST API 설계 방식에 대한 이해
   - pre-compressed resource
   - API 문서화 방식 with Swagger
+  - 확장성을 고려한 구조 설계
+
+<br>
+
+### 공유메모리를 활용한 IPC
+
+- C++ 인스턴스를 공유메모리를 적재하는 방법 with boost::interprocess
+  - boost::interprocess::managed_shared_memory(segment) -> 공유 메모리 공간을 할당할 수 있는 영역(할당 영역이 segment의 전체가 될 수도 있고, 일부가 될 수도있음)
+  - boost::interprocess::offset_ptr -> segment 공간에 할당된 공유 메모리 객체에 접근할 수 있는 포인터 정보
+- 공유메모리에서 container(map) 사용하기
+- 공유메모리에 대한 이해
+  - 가상메모리
+  - /dev/shm 에서 파일이 삭제되는 경우에도 이전에 find() 함수를 통해 offset_ptr 변수에 값을 저장해둔 경우라면 여전히 사용이 가능한데 그 이유는 뭘까?
+    - In unix/linux, files are deleted from disk only when all the references to them are closed. A file name in a directory is simply a reference to a file, and so is a (open) file handle in a running program. Even if you delete the file name, the running program still has a handle, so the file is not really deleted - but you can not see it because the file name in the directory is gone.
 
 ---
 

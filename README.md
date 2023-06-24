@@ -146,6 +146,10 @@ C/C++ & Go 백엔드 개발자
   - /dev/shm 에서 파일이 삭제되는 경우에도 이전에 find() 함수를 통해 offset_ptr 변수에 값을 저장해둔 경우라면 여전히 사용이 가능한데 그 이유는 뭘까?
     - In unix/linux, files are deleted from disk only when all the references to them are closed. A file name in a directory is simply a reference to a file, and so is a (open) file handle in a running program. Even if you delete the file name, the running program still has a handle, so the file is not really deleted - but you can not see it because the file name in the directory is gone.
 
+어떤 문제 혹은 요구사항 있었는지
+그것을 해결하기 위해 어떤 접근 방식을 보여주었는지
+해결 과정에서 부딪힌 문제점과 극복 방안은 무엇이었는지
+
 ---
 
 <br>

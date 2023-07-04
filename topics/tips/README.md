@@ -109,3 +109,71 @@ int main()
 [The] [quick] [brown] [fox] [jumps] [over] [the] [lazy] [dog.] 
 [The] [quick] [brown] [fox] [jumps] [over] [the] [lazy] [dog.]
 ```
+
+<br>
+
+## [c++] 템플릿 클래스를 정의할 때 선언부와 구현부를 서로 다른 파일로 분리하는 방법
+헤더 파일의 맨 하단에 템플릿 클래스를 구현한 파일을 include 시켜주면 된다. (#include는 대상이되는 파일을 단순히 붙여 넣어주는 역할을 하므로)
+```cpp
+#ifndef MYTEMPLATECLASS_H
+#define MYTEMPLATECLASS_H
+
+namespace ggultip
+{
+	template <typename T>
+	class mytemplateclass
+	{
+	public:
+		mytemplateclass();
+		~mytemplateclass();
+		
+		...
+	};
+}
+
+#endif
+
+#include "mytemplateclass.impl.h"
+```
+
+```cpp
+#pragma once
+
+namespace ggultip
+{
+	template <typename T>
+	mytemplateclass<T>::mytemplateclass()
+	{
+		...
+	}
+	
+	template <typename T>
+	mytemplateclass<T>::~mytemplateclass()
+	{
+		...
+	}
+	
+	...
+}
+```
+
+<br>
+
+## [c++] 템플릿은 왜 ODR(One Definition Rule)을 위반하지 않는걸까?
+
+**ODR이란?**
+* https://learn.microsoft.com/en-us/cpp/cpp/program-and-linkage-cpp?view=msvc-170
+> In a C++ program, a symbol, for example a variable or function name, can be declared any number of times within its scope. However, it can only be defined once. This rule is the "One Definition Rule" (ODR).
+
+> A program consists of one or more translation units. A translation unit consists of an implementation file and all the headers that it includes directly or indirectly. Implementation files typically have a file extension of .cpp or .cxx. Header files typically have an extension of .h or .hpp. Each translation unit is compiled independently by the compiler. After the compilation is complete, the linker merges the compiled translation units into a single program. Violations of the ODR rule typically show up as linker errors. Linker errors occur when the same name is defined in more than one translation unit.
+
+**템플릿이 ODR을 위반하지 않는 이유**
+* https://stackoverflow.com/questions/34552380/why-cs-vector-templated-class-doesnt-break-one-definition-rule
+
+> The same way any template definitions don't break the ODR — the ODR specifically says that template definitions may be duplicated across translation units, as long as they are literally duplicates (and, since they are duplicates, no conflict or ambiguity is possible).
+
+> [C++14: 3.2/6]: There can be more than one definition of a class type (Clause 9), enumeration type (7.2), inline function with external linkage (7.1.2), class template (Clause 14), non-static function template (14.5.6), static data member of a class template (14.5.1.3), member function of a class template (14.5.1.1), or template specialization for which some template parameters are not specified (14.7, 14.5.5) in a program provided that each definition appears in a different translation unit, and provided the definitions satisfy the following requirements [..]
+
+> Multiple inclusions of <vector> within the same translation unit are expressly permitted and effectively elided, more than likely by "#ifndef" header guards.
+
+* 

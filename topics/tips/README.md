@@ -175,5 +175,3 @@ namespace ggultip
 > [C++14: 3.2/6]: There can be more than one definition of a class type (Clause 9), enumeration type (7.2), inline function with external linkage (7.1.2), class template (Clause 14), non-static function template (14.5.6), static data member of a class template (14.5.1.3), member function of a class template (14.5.1.1), or template specialization for which some template parameters are not specified (14.7, 14.5.5) in a program provided that each definition appears in a different translation unit, and provided the definitions satisfy the following requirements [..]
 
 > Multiple inclusions of <vector> within the same translation unit are expressly permitted and effectively elided, more than likely by "#ifndef" header guards.
-
-* 

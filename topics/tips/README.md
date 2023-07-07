@@ -159,19 +159,11 @@ namespace ggultip
 
 <br>
 
-## [c++] 템플릿은 왜 ODR(One Definition Rule)을 위반하지 않는걸까?
-
-**ODR이란?**
+## [c++] ODR(One Definition Rule)이란?
 * https://learn.microsoft.com/en-us/cpp/cpp/program-and-linkage-cpp?view=msvc-170
+
+C++ 프로그램에서 변수나 함수의 이름와 같은 심볼은 그것들의 생명 주기가 유지되는 범위 내에서는 횟수에 관계없이 선언(declaration)될 수 있습니다. 하지만 오직 한번만 정의(definition) 될 수 있습니다. 이 규칙이 바로 "One Definition Rule(ODR)"입니다.
 > In a C++ program, a symbol, for example a variable or function name, can be declared any number of times within its scope. However, it can only be defined once. This rule is the "One Definition Rule" (ODR).
 
+프로그램은 하나 또는 그 이상의 해석 유닛(Translation Unit)으로 구성되어있습니다. 해석 유닛은 구현 파일과 그것에 직/간접적으로 포함된 모든 헤더 파일들로 이루어져있습니다. 보통 구현 파일들은 .cpp나 .cxx와 같은 파일 확장자를 갖습니다. 헤더 파일의 경우에는 .h 또는 .hpp를 파일 확장자로 갖습니다. 각각의 해석 유닛은 컴파일러에 의해 독립적으로 컴파일됩니다. 컴파일이 완료된 이후에, 링커는 컴파일된 해석 유닛들을 하나의 프로그램으로 합치는 역할을 수행합니다. ODR 규칙의 위반은 대게 링커 에러로 나타납니다. 이 링커 에러는 동일한 이름이 하나 이상의 해석 유닛에서 정의(definition)된 경우에 발생합니다.
 > A program consists of one or more translation units. A translation unit consists of an implementation file and all the headers that it includes directly or indirectly. Implementation files typically have a file extension of .cpp or .cxx. Header files typically have an extension of .h or .hpp. Each translation unit is compiled independently by the compiler. After the compilation is complete, the linker merges the compiled translation units into a single program. Violations of the ODR rule typically show up as linker errors. Linker errors occur when the same name is defined in more than one translation unit.
-
-**템플릿이 ODR을 위반하지 않는 이유**
-* https://stackoverflow.com/questions/34552380/why-cs-vector-templated-class-doesnt-break-one-definition-rule
-
-> The same way any template definitions don't break the ODR — the ODR specifically says that template definitions may be duplicated across translation units, as long as they are literally duplicates (and, since they are duplicates, no conflict or ambiguity is possible).
-
-> [C++14: 3.2/6]: There can be more than one definition of a class type (Clause 9), enumeration type (7.2), inline function with external linkage (7.1.2), class template (Clause 14), non-static function template (14.5.6), static data member of a class template (14.5.1.3), member function of a class template (14.5.1.1), or template specialization for which some template parameters are not specified (14.7, 14.5.5) in a program provided that each definition appears in a different translation unit, and provided the definitions satisfy the following requirements [..]
-
-> Multiple inclusions of <vector> within the same translation unit are expressly permitted and effectively elided, more than likely by "#ifndef" header guards.

@@ -127,11 +127,14 @@ C/C++ & Go 백엔드 개발자
   - Golang 프로젝트를 어떻게 구조화(프로젝트 레이아웃)할 것인가?
   - 모듈과 패키지의 차이점은?
   - 패키지들을 구분하는 기준은?
-- REST API 서버 개발
+- REST API 서버 개발(golang)
   - 올바른 REST API 설계 방식에 대한 이해
   - pre-compressed resource
   - API 문서화 방식 with Swagger
   - 확장성을 고려한 구조 설계
+- REST API 클라이언트 개발(C++)
+  - boost::beast 라이브러리 활용
+  - transfer-encoding에 따른 처리(chunked or not)
 
 <br>
 

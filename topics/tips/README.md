@@ -1,3 +1,21 @@
+# Tips
+
+- [Tips](#tips)
+  - [\[c++\] 문자열 파싱 방법](#c-문자열-파싱-방법)
+  - [\[git\] submodule이란? submodule의 merge request 절차는?](#git-submodule이란-submodule의-merge-request-절차는)
+  - [\[linux\] tcpreplay 사용 시, unable to send packet: message too long 메시지가 발생할 때 해결 방법](#linux-tcpreplay-사용-시-unable-to-send-packet-message-too-long-메시지가-발생할-때-해결-방법)
+  - [\[linux\] tmux 사용 방법 정리](#linux-tmux-사용-방법-정리)
+  - [\[word\] 집요함이 결과를 만들어낸다.](#word-집요함이-결과를-만들어낸다)
+  - [\[linux\] rpm과 yum](#linux-rpm과-yum)
+  - [\[linux\] google/sanitizes 를 이용한 동적 메모리 에러 취약점 방어](#linux-googlesanitizes-를-이용한-동적-메모리-에러-취약점-방어)
+  - [\[c++\] boost::make\_iterator\_range()를 활용하여 range 객체화하기](#c-boostmake_iterator_range를-활용하여-range-객체화하기)
+  - [\[c++\] 템플릿 클래스를 정의할 때 선언부와 구현부를 서로 다른 파일로 분리하는 방법](#c-템플릿-클래스를-정의할-때-선언부와-구현부를-서로-다른-파일로-분리하는-방법)
+  - [\[c++\] ODR(One Definition Rule)이란?](#c-odrone-definition-rule이란)
+  - [\[c++\] async의 콜백 함수로 클래스의 멤버 함수를 사용하는 경우 주의 사항](#c-async의-콜백-함수로-클래스의-멤버-함수를-사용하는-경우-주의-사항)
+  - [\[c++\] dynamic cast 사용 시 주의 사항](#c-dynamic-cast-사용-시-주의-사항)
+
+<br>
+
 ## [c++] 문자열 파싱 방법
 전체 문자열 중 일부가 target 문자열에 매칭되는지 여부를 확인하기 위한 과정 중에 추출된 부분 문자열에 대하여 openssl 라이브러리에서 제공하는 MD5 함수를 호출해야하는 작업이 필요했습니다. 아래 [MD5 함수의 정의](https://www.openssl.org/docs/man1.1.1/man3/MD5.html)를 살펴보면 md5 message digest를 생성할 대상의 시작 지점을 가리키는 포인터(d)와 해당 시작 지점에서부터 얼마나 떨어져 있는지를 나타내는 길이(n), 그리고 생성된 md5 message digest를 저장할 공간을 가리키는 포인터(md)를 함수의 인자로 받고있는 것을 확인할 수 있습니다.
 ```cpp
@@ -161,9 +179,102 @@ namespace ggultip
 
 ## [c++] ODR(One Definition Rule)이란?
 * https://learn.microsoft.com/en-us/cpp/cpp/program-and-linkage-cpp?view=msvc-170
+* https://modoocode.com/320
 
 C++ 프로그램에서 변수나 함수의 이름와 같은 심볼은 그것들의 생명 주기가 유지되는 범위 내에서는 횟수에 관계없이 선언(declaration)될 수 있습니다. 하지만 오직 한번만 정의(definition) 될 수 있습니다. 이 규칙이 바로 "One Definition Rule(ODR)"입니다.
 > In a C++ program, a symbol, for example a variable or function name, can be declared any number of times within its scope. However, it can only be defined once. This rule is the "One Definition Rule" (ODR).
 
 프로그램은 하나 또는 그 이상의 해석 유닛(Translation Unit)으로 구성되어있습니다. 해석 유닛은 구현 파일과 그것에 직/간접적으로 포함된 모든 헤더 파일들로 이루어져있습니다. 보통 구현 파일들은 .cpp나 .cxx와 같은 파일 확장자를 갖습니다. 헤더 파일의 경우에는 .h 또는 .hpp를 파일 확장자로 갖습니다. 각각의 해석 유닛은 컴파일러에 의해 독립적으로 컴파일됩니다. 컴파일이 완료된 이후에, 링커는 컴파일된 해석 유닛들을 하나의 프로그램으로 합치는 역할을 수행합니다. ODR 규칙의 위반은 대게 링커 에러로 나타납니다. 이 링커 에러는 동일한 이름이 하나 이상의 해석 유닛에서 정의(definition)된 경우에 발생합니다.
 > A program consists of one or more translation units. A translation unit consists of an implementation file and all the headers that it includes directly or indirectly. Implementation files typically have a file extension of .cpp or .cxx. Header files typically have an extension of .h or .hpp. Each translation unit is compiled independently by the compiler. After the compilation is complete, the linker merges the compiled translation units into a single program. Violations of the ODR rule typically show up as linker errors. Linker errors occur when the same name is defined in more than one translation unit.
+
+각 TU 에 존재하는 모든 변수, 함수, 클래스, enum, 템플릿 등등의 정의(Definition) 은 유일 해야 하고 `inline` 이 아닌 모든 함수의 변수들의 정의는 전체 프로그램에서 유일해야 합니다.
+
+<br>
+
+## [c++] async의 콜백 함수로 클래스의 멤버 함수를 사용하는 경우 주의 사항
+* https://stackoverflow.com/questions/57427740/how-to-pass-a-function-and-its-parameters-to-stdasync-inside-a-member-functio
+
+std::async 함수의 인자로 반드시 `this`를 함께 넘겨주어야 합니다.
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <string>
+#include <future>
+
+using namespace std;
+
+class splitter
+{
+    public:
+    splitter() = default;
+    virtual ~splitter() = default;
+    bool execute(vector<string> &vstr);
+    bool split_files(vector<string> &vstr);
+};
+
+bool splitter::split_files(vector<string> &vstr)
+{
+    for(auto & file : vstr)
+    {
+        // do something
+        cout << file << endl;
+    }
+    return true;
+}
+
+bool splitter::execute(vector<string> &vstr)
+{
+    // 3번째 인자로 this가 들어가야한다는 것에 주의 하자!
+	auto fut = std::async(std::launch::async, &splitter::split_files, this, std::ref(vstr));
+    bool good = fut.get();
+    return good;
+}
+
+int main()
+{
+    vector<string> filenames {
+                                "file1.txt",
+                                "file2.txt",
+                                "file3.txt"
+                             };
+
+    splitter split;
+    split.execute(filenames);
+
+    return 0;
+}
+```
+
+<br>
+
+## [c++] dynamic cast 사용 시 주의 사항
+* https://www.geeksforgeeks.org/rtti-run-time-type-information-in-cpp/
+
+dynamic casting 이후에는 반드시 nullptr 체크를 해주자. 그리고 dynamic cast의 경우 비용이 꽤 크기때문에 static cast를 사용할 수 있는 상황이라면 static cast를 우선 하자.
+
+> Using `dynamic_cast`: In an inheritance hierarchy, it is used for downcasting a base class pointer to a child class. On successful casting, it returns a pointer of the converted type and, however, it fails if we try to cast an invalid type such as an object pointer that is not of the type of the desired subclass.
+
+```cpp
+#include <iostream>
+using namespace std;
+ 
+// initialization of base class
+class B {};
+ 
+// initialization of derived class
+class D : public B {};
+ 
+// Driver Code
+int main()
+{
+    B* b = new D; // Base class pointer
+    D* d = dynamic_cast<D*>(b); // Derived class pointer
+    if (d != NULL)
+        cout << "works";
+    else
+        cout << "cannot cast B* to D*";
+    getchar(); // to get the next character
+    return 0;
+}
+```

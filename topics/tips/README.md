@@ -13,6 +13,8 @@
   - [\[c++\] ODR(One Definition Rule)이란?](#c-odrone-definition-rule이란)
   - [\[c++\] async의 콜백 함수로 클래스의 멤버 함수를 사용하는 경우 주의 사항](#c-async의-콜백-함수로-클래스의-멤버-함수를-사용하는-경우-주의-사항)
   - [\[c++\] dynamic cast 사용 시 주의 사항](#c-dynamic-cast-사용-시-주의-사항)
+  - [\[c++\] 리팩토링 후기](#c-리팩토링-후기)
+  - [\[c++\] 클래스 전방 선언 완벽 정리](#c-클래스-전방-선언-완벽-정리)
 
 <br>
 
@@ -277,4 +279,236 @@ int main()
     getchar(); // to get the next character
     return 0;
 }
+```
+
+* *업캐스팅*은 static_cast
+* *다운캐스팅* dynamic_cast
+```cpp
+#include <iostream>
+
+template <typename DerivedT>
+class Base
+{
+public:
+    Base()
+    {
+        
+    }
+
+    // 반드시 추가!
+    virtual ~Base()
+    {
+
+    }
+
+    DerivedT *derived()
+    {
+        // 다운캐스팅
+        return static_cast<DerivedT *>(this);
+    }
+
+    void print_derived_info()
+    {
+        derived()->mark(); // 기반클래스의 멤버함수에서 파생클래스의 public 멤버함수를 호출할 수 있다
+        derived()->set_idx(100); // 기반클래스의 멤버함수에서 파생클래스가 상속받는 클래스의 public 멤버함수를 호출할 수 있다.
+    }
+};
+
+template <typename DerivedT>
+class AnotherBase
+{
+public:
+    AnotherBase()
+    {
+        idx_ = 0;
+    }
+
+    void set_idx(int new_idx)
+    {
+        idx_ = new_idx;
+        std::cout << "call set_idx(idx: " << idx_ << ")" << std::endl;
+    }
+
+private:
+    int idx_;
+};
+
+template <int kind, template <typename> typename DerivedT>
+class Derived 
+    : public Base<Derived<kind, DerivedT>>
+    , public AnotherBase<Derived<kind, DerivedT>>
+{
+public:
+    typedef Derived<kind, DerivedT> this_type;
+	typedef DerivedT<this_type> derived_type;
+
+    Derived(std::string msg)
+    {
+        mark_ = "i'm ";
+        mark_ += msg;
+        mark_ += " derived";
+    }
+
+    void call_test()
+    {
+        derived_type::print_derived_info();
+    }
+
+    void mark()
+    {
+        std::cout << mark_ << std::endl;
+    }
+
+private:
+    std::string mark_;
+};
+
+int main()
+{
+    Derived<100, Base> derived("first");
+    Derived<100, Base> derived2("second");
+
+    derived.call_test();
+    derived2.call_test();
+
+    // 업캐스팅
+    Derived<100, Base>* d = new Derived<100, Base>("third");
+    Base<Derived<100, Base>>* b = d;
+    
+    // 다운캐스팅(static_cast)
+    Base<Derived<200, Base>>* b2 = new Derived<200, Base>("forth");
+    Derived<200, Base>* d2;
+    d2 = static_cast<Derived<200, Base>*>(b2);
+    if(d2 != nullptr)
+    {
+        d2->mark();
+    }
+    
+    // 다운캐스팅(dynamic_cast)
+    Base<Derived<200, Base>>* b3 = new Derived<200, Base>("fifth");
+    Derived<200, Base>* d3 = dynamic_cast<Derived<200, Base>*>(b3);
+    if(d3 != nullptr)
+    {
+        d3->mark();
+    }
+    
+    return 0;
+}
+```
+
+<br>
+
+## [c++] 리팩토링 후기
+* 불필요한 값의 복사는 피하라(const & 활용)
+* 함수를 템플릿 인자로 받아서 처리하도록 하라(템플릿 인자로 사용되는 함수는 람다로 정의)
+* 코드의 중복을 최대한 피하라(이를 위해 템플릿을 사용하든, 별도의 함수를 사용하든 하자)
+* for문은 range 형태로 작성하면 깔끔하다
+* 반복문을 for문(range기반이 깔끔)과 람다를 활용하면 유용하다(동일한 함수와 입력 값을 사용하여 서로 다른 반복 작업을 수행할 수 있다.)
+* lambda 내에서 클래스의 멤버 변수에 접근하려면 this를 캡쳐하라([해당 링크](https://stackoverflow.com/questions/30142730/c-lambda-capture-private-class-member) 참조)
+
+```cpp
+std::vector<int> container = {1, 2, 3, 4, 5};
+
+template <typename ProcedureT>
+bool loop_test(ProcedureT p)
+{
+	for (auto data : container)
+	{
+		if (p(data) == true)
+		{
+			return data;
+		}
+	}
+}
+
+// 호출 시
+loop_test(
+[](int data) -> bool {
+	if(data == 3)
+	{
+		return true;
+	}
+	return false;
+}
+);
+```
+
+<br>
+
+## [c++] 클래스 전방 선언 완벽 정리
+* https://stackoverflow.com/questions/553682/when-can-i-use-a-forward-declaration
+
+여러분이 컴파일러의 입장에 있다고 생각해봅시다: 타입을 전방 선언하는 경우 컴파일러가 알고있는 전부는 이 타입이 존재한다는 것뿐입니다; 그것의 사이즈나 멤버 또는 메소드에 관한 것은 전혀 알지 못합니다. 이것이 바로 불완전한 타입(incomplete type)이라고 불리는 이유입니다. 컴파일러가 이 타입의 레이아웃을 알아야하기 때문에, 여러분이 이 타입을 멤버 변수로 선언한다거나 혹은 부모 클래스로 사용한다거나 하는 것은 불가능합니다.
+> Put yourself in the compiler's position: when you forward declare a type, all the compiler knows is that this type exists; it knows nothing about its size, members, or methods. This is why it's called an *incomplete type*. Therefore, you cannot use the type to declare a member, or a base class, since the compiler would need to know the layout of the type.
+
+아래와 같은 클래스 전방 선언을 가정해보겠습니다.
+> Assuming the following forward declaration.
+
+여기 여러분이 할 수 있는것과 할 수 없는 것이 있습니다.
+> Here's what you can and cannot do.
+
+<br>
+
+**What you can do with an incomplete type:**
+* Declare a member to be a pointer or a reference to the incomplete type:
+```cpp
+class Foo {
+		// 전방 선언한 클래스 타입의 포인터변수와 레퍼런스변수는 사용이 가능함
+    X* p;
+    X& r;
+};
+```
+
+* Declare functions or methods which accept/return incomplete types:
+```cpp
+// 함수나 메소드의 인자와 반환 값에도 전방 선언한 클래스 타입을 사용할 수 있음
+void f1(X);
+X f2();
+```
+
+* Define functions or methods which accept/return pointers/references to the incomplete type (but without using its members):
+```cpp
+// 함수나 메소드의 인자와 반환값에 전방 선언한 클래스 타입의 포인터와 레퍼런스를 사용할 수 있음
+// 단, 불완전한 타입의 멤버 변수 접근이나 멤버 함수의 호출은 불가함
+void f3(X*, X&) {}
+X& f4() {}
+X* f5() {}
+```
+
+<br>
+
+**What you cannot do with an incomplete type:**
+* Use it as a base class
+```cpp
+// 부모클래스로 사용이 불가함
+class Foo : public X // compiler error!
+```
+
+* Use it to declare a member:
+```cpp
+// (포인터나 레퍼런스가 아닌) 전방 선언한 클래스 타입을 멤버 변수로 사용할 수 없음
+class Foo {
+    X m; // compiler error!
+};
+```
+
+* Define functions or methods using this type
+```cpp
+// (포인터나 레퍼런스가 아닌) 전방 선언한 클래스 타입을 함수나 메소드에 사용할 수 없음
+void f1(X x) {} // compiler error!
+X f2() {} // compiler error!
+```
+
+* Use its methods or fields, in fact trying to dereference a variable with incomplete type
+```cpp
+// 불완전한 타입의 멤버 변수의 접근이나 멤버 함수의 호출은 불가함
+class Foo {
+    X* m; // ok!
+		
+    void method()            
+    {
+        m->someMethod();      // compiler error!
+        int i = m->someField; // compiler error!
+    }
+};
 ```

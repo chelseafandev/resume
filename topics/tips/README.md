@@ -16,6 +16,7 @@
   - [\[c++\] 리팩토링 후기](#c-리팩토링-후기)
   - [\[c++\] 클래스 전방 선언 완벽 정리](#c-클래스-전방-선언-완벽-정리)
   - [\[git\] git commit 메시지에 템플릿 적용하는 방법](#git-git-commit-메시지에-템플릿-적용하는-방법)
+  - [\[네트워크\] tcpdump로 실시간 패킷 흐름 확인하기](#네트워크-tcpdump로-실시간-패킷-흐름-확인하기)
 
 <br>
 
@@ -560,3 +561,29 @@ $ vim ~/.gitmessage.txt
 ```bash
 $ git config --global commit.template ~/.gitmessage.txt
 ```
+
+<br>
+
+## [네트워크] tcpdump로 실시간 패킷 흐름 확인하기
+`eth0`로 유입되는 패킷 중 `tcp`이며 port 번호가 `5757`인 패킷 흐름 확인
+
+```
+tcpdump -nnS -vv -i eth0 tcp port 5757
+```
+* `nn`: 호스트/서비스명이 아닌 IP주소와 Port번호로 출력
+* `S`: tcp 시퀀스 번호에 대해 상대적(relative) 번호가 아닌 절대적(absolute) 번호 출력
+* `v, vv, vvv`: 패킷을 헤더부까지 자세히 출력
+
+<br>
+
+`[S]` : SYN
+
+`[S.]` : SYN + ACK
+
+`[.]` : ACK
+
+`[P.]`: PUSH + ACK
+
+`[F.]`: FIN + ACK
+![](../resource/image/tcpdump_1.png)
+![](../resource/image/tcpdump_2.png)

@@ -16,6 +16,7 @@
   - [\[c++\] 리팩토링 후기](#c-리팩토링-후기)
   - [\[c++\] 클래스 전방 선언 완벽 정리](#c-클래스-전방-선언-완벽-정리)
   - [\[git\] git commit 메시지에 템플릿 적용하는 방법](#git-git-commit-메시지에-템플릿-적용하는-방법)
+  - [\[linux\] 사설인증서 만들기(서버, 클라이언트)](#linux-사설인증서-만들기서버-클라이언트)
 
 <br>
 
@@ -560,3 +561,89 @@ $ vim ~/.gitmessage.txt
 ```bash
 $ git config --global commit.template ~/.gitmessage.txt
 ```
+
+<br>
+
+## [linux] 사설인증서 만들기(서버, 클라이언트)
+
+서버 및 클라이언트 인증서 설정은 [해당 링크](https://docs.jelastic.com/ssl-for-pgsql/)에 설명이 아주 잘되어있어서 나중에 참고를 위해 번역 해보았다.
+
+**1. PostgreSQL 서버 설정**
+
+1.1. SSL 통신을 위해서 서버의 /var/lib/pgsql/data 경로에 아래 3가지 파일이 추가되어야한다.
+- server.key : 서버 개인키
+- server.crt : 서버 인증서
+- root.crt : 신뢰할 수 있는 루트 인증서
+
+1.2. 먼저, 첫번째 파일인 - (서버) 개인키를 아래 명령어를 통해 생성해보자.
+```bash
+cd /var/lib/pgsql/data
+openssl genrsa -des3 -out server.key 1024
+```
+```bash
+openssl rsa -in server.key -out server.key
+```
+
+1.3. 아래 명령어를 통해 생성된 (서버)개인 키의 적절한 권한과 소유권을 설정한다.
+```bash
+chmod 400 server.key
+chown postgres.postgres server.key
+```
+
+1.4. 이제 서버 개인키에 기반한 서버 인증서를 생성해야한다.
+```bash
+openssl req -new -key server.key -days 3650 -out server.crt -x509 -subj '/C=KR/ST=Seoul/L=Seoul/O=Somansa/CN=somansa.com/emailAddress=bluetomorrow@somansa.com'
+```
+
+1.5. 우리는 직접 인증서를 서명할 것이므로 생성된 서버 인증서는 신뢰할 수 있는 루트 인증서로도 사용될 수 있다. 적절한 이름으로 서버 인증서를 복사하자.
+```bash
+cp server.crt root.crt
+```
+
+1.6. 이제 당신은 3가지의 인증서 파일을 모두 가지고 있기때문에 SSL을 활성화하고 사용하기 위한 PostgreSQL 데이터베이스 설정을 수행할 수 있다. 먼저 pg_hba.conf 파일을 열어 아래와 같이 수정한다.
+```bash
+# TYPE  DATABASE    USER        CIDR-ADDRESS          METHOD
+# "local" is for Unix domain socket connections only
+local   all         all                               trust
+# IPv4 local connections:
+hostssl all         all         127.0.0.1/32          md5 clientcert=1
+
+# IPv4 remote connections for authenticated users
+hostssl all         all         0.0.0.0/0             md5 clientcert=1
+```
+
+1.7. 다음은 postgresql.conf 파일을 열어 아래와 같이 수정한다.
+```bash
+ssl = on
+ssl_ca_file = 'root.crt'
+```
+
+1.8. 마지막으로 PostgreSQL 서비스를 재시작한다.
+```bash
+systemctl restart postgresql-11.service
+```
+
+**2. 클라이언트 인증서**
+2.1. 위에서 작업했던 서버 인증서가 앞으로의 작업에 필요하기 때문에 서버와의 SSH 접속을 유지하고, 생성할 클라이언트의 개인키를 /tmp 경로에 임시 저장한다.
+```bash
+openssl genrsa -des3 -out /tmp/postgresql.key 1024
+openssl rsa -in /tmp/postgresql.key -out /tmp/postgresql.key
+```
+
+2.2. 다음으로 클라이언트 인증서를 생성하고 그것을 위에서 생성했던 신뢰할 수 있는 루트 인증서(root.crt)로 서명한다.
+```bash
+openssl req -new -key /tmp/postgresql.key -out /tmp/postgresql.csr -subj '/C=KR/ST=Seoul/L=Seoul/O=Somansa/CN=postgres'
+openssl x509 -req -in /tmp/postgresql.csr -CA root.crt -CAkey server.key -out /tmp/postgresql.crt -CAcreateserial
+```
+
+💡 Common Name(/CN=) 은 반드시 pg_hba.conf 파일에서 사용한 USER 이름과 동일한 이름을 사용해야한다.<br>
+💡 두번째 명령어에 보이는 root.crt와 server.key 파일은 반드시 전체 경로를 명시해 주어야한다. 위의 경우에는 해당 파일들이 존재하는 경로에서 명령어를 수행했기때문에 이름만 적어도 무방하다.
+
+2.3. postgresql.key, postgresql.crt, root.crt 이 3개의 파일이 준비가 됐다면, 당신의 클라이언트 머신의 .postgresql 폴더에 이 파일들을 이동시켜준다. 또한 좀 더 나은 보안이 필요하다면 postgresql.key 파일의 권한을 400으로 설정할 수 있다.
+```bash
+chmod 400 postgresql.key
+```
+
+💡 PostgreSQL 서버의 /tmp 경로에 생성해둔 인증서 파일들은 반드시 삭제해주자!
+
+<br>

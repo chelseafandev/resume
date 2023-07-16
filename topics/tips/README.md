@@ -18,6 +18,7 @@
   - [\[git\] git commit 메시지에 템플릿 적용하는 방법](#git-git-commit-메시지에-템플릿-적용하는-방법)
   - [\[네트워크\] tcpdump로 실시간 패킷 흐름 확인하기](#네트워크-tcpdump로-실시간-패킷-흐름-확인하기)
   - [\[linux\] 사설인증서 만들기(서버, 클라이언트)](#linux-사설인증서-만들기서버-클라이언트)
+  - [\[c++\] struct tm 변수를 항상 초기화 해야하는 이유](#c-struct-tm-변수를-항상-초기화-해야하는-이유)
 
 <br>
 
@@ -672,5 +673,21 @@ chmod 400 postgresql.key
 ```
 
 💡 PostgreSQL 서버의 /tmp 경로에 생성해둔 인증서 파일들은 반드시 삭제해주자!
+
+<br>
+
+## [c++] struct tm 변수를 항상 초기화 해야하는 이유
+
+struct tm 변수를 초기화하지 않고 tm 구조체의 모든 값을 할당 해주지 않고나서 mktime을 호출하는 경우 에러가 발생(`1`을 반환)할 수 있음. (tm 구조체에 할당되지 않는 값에 쓰레기 값이 들어가는 경우가 발생함👻)
+
+아래와 같이 struct tm 변수들은 반드시 **초기화**해주도록 하자
+```cpp
+struct tm not_before;
+memset(&not_before, 0, sizeof(not_before));
+struct tm not_after;
+memset(&not_after, 0, sizeof(not_after));
+struct tm time_stamp;
+memset(&time_stamp, 0, sizeof(time_stamp));
+```
 
 <br>

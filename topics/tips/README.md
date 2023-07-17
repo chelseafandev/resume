@@ -19,6 +19,7 @@
   - [\[네트워크\] tcpdump로 실시간 패킷 흐름 확인하기](#네트워크-tcpdump로-실시간-패킷-흐름-확인하기)
   - [\[linux\] 사설인증서 만들기(서버, 클라이언트)](#linux-사설인증서-만들기서버-클라이언트)
   - [\[c++\] struct tm 변수를 항상 초기화 해야하는 이유](#c-struct-tm-변수를-항상-초기화-해야하는-이유)
+  - [\[네트워크\] SO\_REUSERPORT 옵션으로 네트워크 서버 성능 향상 시키기](#네트워크-so_reuserport-옵션으로-네트워크-서버-성능-향상-시키기)
 
 <br>
 
@@ -691,3 +692,17 @@ memset(&time_stamp, 0, sizeof(time_stamp));
 ```
 
 <br>
+
+## [네트워크] SO_REUSERPORT 옵션으로 네트워크 서버 성능 향상 시키기
+* https://wiki.terzeron.com/OS_%EC%9D%BC%EB%B0%98_%EC%8B%9C%EC%8A%A4%ED%85%9C/OS%EC%99%80_Network_%EC%9D%BC%EB%B0%98/SO_REUSEPORT%EB%A5%BC_%EC%9D%B4%EC%9A%A9%ED%95%9C_%EB%84%A4%ED%8A%B8%EC%9B%8D_%EC%84%9C%EB%B2%84_%EC%84%B1%EB%8A%A5%ED%96%A5%EC%83%81
+* https://lwn.net/Articles/542629/
+
+리눅스 커널 3.9에 소켓 옵션 SO_REUSEPORT를 이용한 멋진 기능이 추가되었는데, 바로 같은 호스트(IP주소)의 같은 포트에 여러 개의 리스닝 소켓(서버 소켓)을 연결(bind)할 수 있음. SO_REUSEPORT 옵션을 사용하게 되면 여러 쓰레드가 하나의 소켓을 공유하고 동시에 listener/worker 역할을 분담해서 수행하는 방식으로 `40,000 cps`(connection per second) 정도의 성능까지 얻을 수 있었다고함.
+
+```cpp
+int sfd = socket(domain, socktype, 0);
+int optval = 1;
+
+setsockopt(sfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+bind(sfd, (struct sockaddr *) &addr, addrlen);
+```

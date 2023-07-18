@@ -20,6 +20,7 @@
   - [\[linux\] 사설인증서 만들기(서버, 클라이언트)](#linux-사설인증서-만들기서버-클라이언트)
   - [\[c++\] struct tm 변수를 항상 초기화 해야하는 이유](#c-struct-tm-변수를-항상-초기화-해야하는-이유)
   - [\[네트워크\] SO\_REUSERPORT 옵션으로 네트워크 서버 성능 향상 시키기](#네트워크-so_reuserport-옵션으로-네트워크-서버-성능-향상-시키기)
+  - [\[c++\] 가변 길이 템플릿 작성 방법](#c-가변-길이-템플릿-작성-방법)
 
 <br>
 
@@ -705,4 +706,59 @@ int optval = 1;
 
 setsockopt(sfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
 bind(sfd, (struct sockaddr *) &addr, addrlen);
+```
+
+<br>
+
+## [c++] 가변 길이 템플릿 작성 방법
+* https://modoocode.com/290
+
+`typename` 뒤에 ... 으로 오는 것을 템플릿 파리미터 팩(parameter pack)이라고 하고 함수의 인자로 `...`이 오는 것을 함수 파라미터 팩이라고 한다.
+
+```
+💡 템플릿 파라미터 팩과 함수 파라미터 팩의 차이점
+ * 템플릿의 경우 타입 앞에 `...` 이 온다
+ * 함수의 경우 타입 뒤에 `...` 가 온다
+```
+
+Logger 클래스 구현하면서 가변 길이 템플릿 활용. C++17에 도입된 `Fold Expression`이 없었다면 재귀 형태로 표현했어야했다.
+```cpp
+lass Logger
+{
+public:
+		...
+    template <typename ... Arguments>
+    void info(char const* fmt, Arguments ... args);
+		...
+		
+private:
+		...
+		template<typename ... Arguments>
+    std::string format(const char* fmt, Arguments ... args);
+		...
+};
+
+template<typename ... Arguments>
+std::string Logger::format(const char* fmt, Arguments ... args)
+{
+	try
+	{
+		// Fold Expression!
+		return boost::str((boost::format(fmt) % ... % args));
+	}
+	catch(boost::io::format_error& fe)
+	{
+		return std::string(fe.what()) + ": " + fmt;
+	}
+
+	return "";
+}
+
+template <typename ... Arguments>
+void Logger::info(char const* fmt, Arguments ... args)
+{
+    std::string formatted = "[INFO] ";
+    formatted += format(fmt, args...);
+    enqueue(formatted);
+}
 ```

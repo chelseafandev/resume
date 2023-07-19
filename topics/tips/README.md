@@ -21,6 +21,8 @@
   - [\[c++\] struct tm 변수를 항상 초기화 해야하는 이유](#c-struct-tm-변수를-항상-초기화-해야하는-이유)
   - [\[네트워크\] SO\_REUSERPORT 옵션으로 네트워크 서버 성능 향상 시키기](#네트워크-so_reuserport-옵션으로-네트워크-서버-성능-향상-시키기)
   - [\[c++\] 가변 길이 템플릿 작성 방법](#c-가변-길이-템플릿-작성-방법)
+  - [\[c++\] const char\*에 boost::range 적용을 위해서는 boost::as\_literal 함수를 사용하라](#c-const-char에-boostrange-적용을-위해서는-boostas_literal-함수를-사용하라)
+  - [\[linux\] 리눅스 공유라이브러리 형식](#linux-리눅스-공유라이브러리-형식)
 
 <br>
 
@@ -762,3 +764,73 @@ void Logger::info(char const* fmt, Arguments ... args)
     enqueue(formatted);
 }
 ```
+
+<br>
+
+## [c++] const char*에 boost::range 적용을 위해서는 boost::as_literal 함수를 사용하라
+* https://www.caichinger.com/boost-range/boost-as_literal.html
+
+```cpp
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include <boost/range.hpp>
+// as_literal() and as_array() need explicit imports.
+#include <boost/range/as_literal.hpp>
+#include <boost/range/as_array.hpp>
+
+using std::cout;
+using std::endl;
+
+const char * const csptr = "BOOST";
+const char csarr[] = "boost";
+
+
+void raw_pointer_demo() {
+    // Calling Boost Range functions on cstrings doesn't work very well.
+    // The first doesn't compile, the second gives size() == 6, as it counts
+    // the terminal \0:
+    cout << "size(csptr): doesn't compile" /* << boost::size(csptr) */ << endl; 
+    cout << "size(csarr): " << boost::size(csarr) << endl;
+}
+
+void as_literal_demo() {
+    // boost::as_literal() solves both of these problems by converting the
+    // cstrings to a string range. The size is 5, as you'd expect from a string.
+    cout << "size(as_literal(csptr)): " << boost::size(boost::as_literal(csptr)) << endl;
+    cout << "size(as_literal(csarr)): " << boost::size(boost::as_literal(csarr)) << endl;
+}
+
+void as_array_demo() {
+    // boost::as_array() serves only a documentary purpose.
+    // Calling it indicates that the author realizes that the argument is a
+    // character array, but explicitly wants to treat it as an array as
+    // opposed to a string.
+    // Note that the behavior is exactly the same as in raw_pointer_demo().
+    cout << "size(as_array(csptr)): doesn't compile"
+      /* << boost::size(boost::as_array(csptr)) */ << endl;
+    cout << "size(as_array(csarr)): " << boost::size(boost::as_array(csarr)) << endl;
+}
+
+int main() {
+    cout << "csptr = (const char *)\"boost\"" << endl;
+    cout << "csarr = \"boost\"" << endl;
+
+    raw_pointer_demo();
+    as_literal_demo();
+    as_array_demo();
+
+    return 0;
+}
+```
+
+<br>
+
+## [linux] 리눅스 공유라이브러리 형식
+
+공유 라이브러리와 관련된 이름은 모두 `3개`
+
+1. real name은 파일 시스템 상에서의 라이브러리 파일의 실제 이름입니다. (libXXX.so.major_version.minor_version)
+2. soname은 호환성이 보장되는 논리적 이름으로서 라이브러리 내에 저장됩니다. (실제 이름의 파일을 가리키는 symbolic link를 하나 생성. libXXX.so.major_version)
+3. linker name은 링커한테 알려주기 위한 lib 과 확장자를 제외한 이름이 됩니다. (soname에 대한 symbolic link를 생성. libXXX.so)

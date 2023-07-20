@@ -23,6 +23,7 @@
   - [\[c++\] 가변 길이 템플릿 작성 방법](#c-가변-길이-템플릿-작성-방법)
   - [\[c++\] const char\*에 boost::range 적용을 위해서는 boost::as\_literal 함수를 사용하라](#c-const-char에-boostrange-적용을-위해서는-boostas_literal-함수를-사용하라)
   - [\[linux\] 리눅스 공유라이브러리 형식](#linux-리눅스-공유라이브러리-형식)
+  - [\[c++\] 공유 라이브러리와 -fPIC 컴파일 옵션](#c-공유-라이브러리와--fpic-컴파일-옵션)
 
 <br>
 
@@ -834,3 +835,18 @@ int main() {
 1. real name은 파일 시스템 상에서의 라이브러리 파일의 실제 이름입니다. (libXXX.so.major_version.minor_version)
 2. soname은 호환성이 보장되는 논리적 이름으로서 라이브러리 내에 저장됩니다. (실제 이름의 파일을 가리키는 symbolic link를 하나 생성. libXXX.so.major_version)
 3. linker name은 링커한테 알려주기 위한 lib 과 확장자를 제외한 이름이 됩니다. (soname에 대한 symbolic link를 생성. libXXX.so)
+
+<br>
+
+## [c++] 공유 라이브러리와 -fPIC 컴파일 옵션
+* https://bpsecblog.wordpress.com/2016/05/25/memory_protect_linux_3/
+
+Position-independent code(PIC)란 메모리의 어느 공간에나 위치할 수 있고 수정 없이 실행될 수 있는 **위치 독립 코드**입니다. 즉 이 코드를 사용하는 각 프로세스들은 이 코드를 서로 다른 주소에서 실행할 수 있으며, 실행 시 재배치가 필요 없습니다.
+
+공유 라이브러리를 PIC로 생성하지 않으면 실행할 때 재배치에 시간이 소요된다는 단점과 다른 프로세스와 코드를 공유할 수 없게 될 수 있는 단점이 있기 때문에 통상적으로 공유 라이브러리를 작성할 때 .c 파일을 PIC로 컴파일 하는 것입니다.
+
+> Once the program has been loaded and has started running, all the necessary contents of the binary file have been loaded into the process’s virtual address space. However, most programs also need to run functions from the system libraries, and these library functions must also be loaded. In the simplest case, the necessary library functions are embedded directly in the program’s executable binary file. Such a program is statically linked to its libraries, and statically linked executables can commence running as soon as they are loaded.
+> 
+> The main disadvantage of static linking is that every program generated must contain copies of exactly the same common system library functions. It is much more efficient, in terms of both physical memory and disk-space usage, to load the system libraries into memory only once. Dynamic linking allows that to happen.
+> 
+> Linux implements dynamic linking in user mode through a special linker library. Every dynamically linked program contains a small, statically linked function that is called when the program starts. This static function just maps the link library into memory and runs the code that the function contains. The link library determines the dynamic libraries required by the program and the names of the variables and functions needed from those libraries by reading the information contained in sections of the ELF binary. It then maps the libraries into the middle of virtual memory and resolves the references to the symbols contained in those libraries. It does not matter exactly where in memory these shared libraries are mapped: they are compiled into position-independent code (PIC), which can run at any address in memory.

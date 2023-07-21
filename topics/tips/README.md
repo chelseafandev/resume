@@ -24,6 +24,7 @@
   - [\[c++\] const char\*에 boost::range 적용을 위해서는 boost::as\_literal 함수를 사용하라](#c-const-char에-boostrange-적용을-위해서는-boostas_literal-함수를-사용하라)
   - [\[linux\] 리눅스 공유라이브러리 형식](#linux-리눅스-공유라이브러리-형식)
   - [\[c++\] 공유 라이브러리와 -fPIC 컴파일 옵션](#c-공유-라이브러리와--fpic-컴파일-옵션)
+  - [\[네트워크\] iptables](#네트워크-iptables)
 
 <br>
 
@@ -850,3 +851,22 @@ Position-independent code(PIC)란 메모리의 어느 공간에나 위치할 수
 > The main disadvantage of static linking is that every program generated must contain copies of exactly the same common system library functions. It is much more efficient, in terms of both physical memory and disk-space usage, to load the system libraries into memory only once. Dynamic linking allows that to happen.
 > 
 > Linux implements dynamic linking in user mode through a special linker library. Every dynamically linked program contains a small, statically linked function that is called when the program starts. This static function just maps the link library into memory and runs the code that the function contains. The link library determines the dynamic libraries required by the program and the names of the variables and functions needed from those libraries by reading the information contained in sections of the ELF binary. It then maps the libraries into the middle of virtual memory and resolves the references to the symbols contained in those libraries. It does not matter exactly where in memory these shared libraries are mapped: they are compiled into position-independent code (PIC), which can run at any address in memory.
+
+<br>
+
+## [네트워크] iptables
+* https://web.mit.edu/rhel-doc/4/RH-DOCS/rhel-rg-en-4/s1-iptables-options.html
+* https://itwiki.kr/w/%EB%A6%AC%EB%88%85%EC%8A%A4_iptables
+
+
+방화벽 리스트 보기
+```
+iptables -t filter -L -xvn
+```
+
+* -x : Expands numbers into their exact values. On a busy system, the number of packets and bytes seen by a particular chain or rule may be abbreviated using K
+ (thousands), M
+ (millions), and G
+ (billions) at the end of the number. This option forces the full number to be displayed.
+* -v : Displays verbose output, such as the number of packets and bytes each chain has seen, the number of packets and bytes each rule has matched, and which interfaces apply to a particular rule.
+* -n : Displays IP addresses and port numbers in numeric format, rather than the default hostname and network service format.

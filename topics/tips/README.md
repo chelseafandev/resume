@@ -25,6 +25,7 @@
   - [\[linux\] 리눅스 공유라이브러리 형식](#linux-리눅스-공유라이브러리-형식)
   - [\[c++\] 공유 라이브러리와 -fPIC 컴파일 옵션](#c-공유-라이브러리와--fpic-컴파일-옵션)
   - [\[네트워크\] iptables](#네트워크-iptables)
+  - [\[linux\] GDB 디버깅](#linux-gdb-디버깅)
 
 <br>
 
@@ -870,3 +871,169 @@ iptables -t filter -L -xvn
  (billions) at the end of the number. This option forces the full number to be displayed.
 * -v : Displays verbose output, such as the number of packets and bytes each chain has seen, the number of packets and bytes each rule has matched, and which interfaces apply to a particular rule.
 * -n : Displays IP addresses and port numbers in numeric format, rather than the default hostname and network service format.
+
+<br>
+
+## [linux] GDB 디버깅
+* https://visualgdb.com/gdbreference/commands/
+* https://visualgdb.com/gdbreference/commands/set_sysroot
+* https://visualgdb.com/gdbreference/commands/set_solib-search-path
+* https://www.irya.unam.mx/computo/sites/manuales/fce12/debugger/cl/commandref/gdb_mode/cmd_set_substitu.htm
+
+gdb를 통해 프로그램 실행
+```
+gdb {프로그램명(경로포함)}
+```
+
+브레이크 포인트 등록
+```
+(gdb) b 소스파일명:라인넘버
+```
+
+프로그램 시작
+```
+(gdb) r {인자를 추가해야한다면 입력}
+```
+
+브레이크 포인트에 걸린 후 이어서 진행
+```
+(gdb) c
+```
+
+기본적인 GDB 명령어
+```
+bt(=backtrace)
+p(=print)
+set print pretty on(or off)
+f(=frame)
+up
+down
+```
+
+print 포맷 종류
+```
+d decimal
+x hex
+t binary
+f floating point
+i instruction
+c character
+```
+
+현재 프레임 내의 지역 변수 정보 확인
+```
+(gdb) info locals
+```
+
+쓰레드 정보 확인
+```
+(gdb) info threads
+```
+
+쓰레드 진입(info threads 명령어를 통해 출력된 Id값으로 진입할 수 있음)
+```
+(gdb) thread {id}
+```
+
+레지스터 정보 확인
+```
+(gdb) info registers
+```
+
+* rax (eax) : 누산기(accumulator) 레지스터. 산술연산(덧셈, 나눗셈, 곱셈)이나 논리연산을 수행한 반환값이 저장
+* rbx (ebx) : 베이스 레지스터
+* rcx (ecx) : 카운터 레지스터. 반복 명령어 사용 시 반복 카운터로 사용되는 값을 저장
+* rdx (edx) : 데이터 레지스터. 산술연산과 I/O 명령에서 rax(eax)와 함께 사용
+* rsi (esi) : source 인덱스 레지스터
+* rdi (edi) : destination 인덱스 레지스터
+* rbp (ebp) : 베이스 포인터 레지스터. 스택의 시작 지점 주소를 저장
+* rsp (esp) : 스택 포인터 레지스터. 스택의 가장 마지막 지점 주소를 저장
+* rip : 명령 포인터 레지스터이다. 현재 명령의 위치를 가리킴
+
+어셈블러 덤프
+```
+(gdb) disas
+```
+
+layout
+```
+layout src
+layout split
+layout asm
+layout reg
+```
+
+특정 변수 값의 주소 출력
+```
+(gdb) p &{변수명}
+```
+
+특정 변수의 헥사값 출력
+```
+(gdb) x/{출력할크기}bx {변수의 주소값}
+```
+
+GDB에서 긴 문자열을 줄이지 않고 그대로 출력
+```
+(gdb) set print elements 0
+```
+
+GDB에서 중복된 문자열을 그대로 풀어서 출력
+```
+(gdb) set print repeats 0
+```
+
+Boost::shared_ptr을 사용한다면 GDB 디버깅 시 px와 pn정보를 출력할 수 있음
+```cpp
+element_type* px;                   // contained pointer
+boost::detail::shared_count pn;     // reference count
+```
+
+프로세스가 실행 중인 상태에서 특정 쓰레드 ID를 통해 GDB 진입이 가능하며, 이후 `CTRL + C`를 통해 해당 쓰레드의 흐름을 중단하여 Backtrace 확인이 가능함(c 명령어를 통해 실행 재개)
+```
+gdb -p {gdb로 확인할 쓰레드 ID}
+```
+
+```
+💡 아래 command들은 gdb 실행 시 -ex 옵션(execute a single GDB command)으로 추가해주면 유용함
+```
+
+1. **set sysroot {path}**
+Specifies the local directory that contains copies of target libraries in the corresponding subdirectories. This option is useful when debugging with gdbserver.
+
+*Typical use*
+This command is useful when debugging remote programs via gdbserver and the libraries on the target machine (running gdbserver) do not match the libraries on the source machine (running gdb). In order to set breakpoints and find source lines that correspond to different code locations GDB needs to access the library files containing symbol information. Copying those libraries to locations under a local directory and specifying its path via **set sysroot** allows GDB find them.
+
+2. **set solib-search-path {path}**
+Specifies directories where GDB will search for shared libraries with symbols. This option is useful when debugging with gdbserver.
+
+*Typical use*
+This command is useful when debugging remote programs via gdbserver. If the shared library path on the remote computer and the GDB computer is different, GDB won't automatically find the local copy of the library and load its symbols unless the directory containing it is specified in **set solib-search-path**.
+
+3. **set substitute-path {original path} {substitute path}**
+Set a substitution rule for finding source files.
+
+*Example*
+In this example, the debuggee is compiled in Funct/src/temp/src, but the sources are in Funct/src. The debugger needs a substitute path to find the sources.
+
+The debugger cannot find the sources because there is no sustitute path, so the list command does not display any source code:
+```
+(gdb) list main
+No source file named /site/Funct/src/temp/src/c_sanity.c.
+(gdb) show substitute-path
+```
+
+The set substitute-path command tells the debugger where to find the sources, so the list command displays the source code:
+```
+(gdb) set substitute-path '/site/Funct/src/temp/src' '/site/Funct/src'
+(gdb) show substitute-path
+/site/Funct/src/temp/src  ->  /site/Funct/src
+(gdb) list main
+16      }
+17
+18      iab2 (na, sum, ivar, nb)
+19          int *na, sum[], *ivar, *nb;
+20      {
+```
+
+<br>

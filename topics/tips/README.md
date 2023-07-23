@@ -26,6 +26,7 @@
   - [\[c++\] 공유 라이브러리와 -fPIC 컴파일 옵션](#c-공유-라이브러리와--fpic-컴파일-옵션)
   - [\[네트워크\] iptables](#네트워크-iptables)
   - [\[linux\] GDB 디버깅](#linux-gdb-디버깅)
+  - [\[tool\] 아파치 superset](#tool-아파치-superset)
 
 <br>
 
@@ -1037,3 +1038,9 @@ The set substitute-path command tells the debugger where to find the sources, 
 ```
 
 <br>
+
+## [tool] 아파치 superset
+* https://superset.apache.org/
+* https://github.com/apache/superset
+  
+Superset is a modern data exploration and data visualization platform. Superset can replace or augment proprietary business intelligence tools for many teams. Superset integrates well with a variety of data sources.

@@ -28,6 +28,7 @@
   - [\[linux\] GDB 디버깅](#linux-gdb-디버깅)
   - [\[tool\] 아파치 superset](#tool-아파치-superset)
   - [\[개발\] 코드 리뷰 방법](#개발-코드-리뷰-방법)
+  - [\[c++\] boost::strand를 사용하는 이유](#c-booststrand를-사용하는-이유)
 
 <br>
 
@@ -1097,3 +1098,201 @@ Superset is a modern data exploration and data visualization platform. Superset 
 **좋은 점**
 
 CL을 리뷰하다가 좋은 점을 발견하면 작성자에게 언급한다. 코드 리뷰를 하다보면 실수만 지적할 때가 있는데 좋은 부분에는 칭찬과 고마움을 아끼지 않는다. 멘토링 측면에서 잘못보다는 잘한 점을 알려주는 것이 더 값지다.
+
+<br>
+
+## [c++] boost::strand를 사용하는 이유
+* I/O thread가 1개인 경우(즉, io_context::run() 함수가 호출되는 쓰레드가 1개인 경우)에는 오직 하나의 쓰레드에서만 핸들러가 호출되므로 동기화라는게 필요없음.
+* 2개 이상의 I/O thread(즉, io_context::run() 함수가 호출되는 쓰레드가 2개 이상인 경우)를 사용하는 경우에는 핸들러를 동기화하기 위해 명시적인 Lock이 필요함.
+* 이때 사용할 수 있는게 boost::asio::strand! 핸들러 내부에서 동기화를 위한 작업을 따로 해줄필요가 없다!
+
+```cpp
+#include <iostream>
+
+#include <boost/asio.hpp>
+#include <boost/thread.hpp>
+#include <boost/thread/detail/thread_group.hpp>
+
+int sum = 0;
+
+class thread_func
+{
+public:
+    thread_func(int idx, boost::asio::io_context& ctx) : idx_(idx), ctx_(ctx)
+    {
+
+    }
+
+    void operator()()
+    {
+        std::ostringstream oss;
+        oss << std::this_thread::get_id();
+        printf("io_context::run #%d thread [%s]\n", idx_, oss.str().c_str());
+        ctx_.run();
+    }
+
+private:
+    int idx_;
+    boost::asio::io_context& ctx_;
+};
+
+void make_sum_to_100_million_without_strand(int thread_count)
+{
+    boost::asio::io_context ctx;
+
+    int loop_count = 0;
+    switch (thread_count)
+    {
+    case 1:
+        loop_count = 50000000;
+        break;
+    case 2:
+        loop_count = 25000000;
+        break;
+    case 4:
+        loop_count = 12500000;
+        break;
+    case 8:
+        loop_count = 6250000;
+        break;
+    case 16:
+        loop_count = 3125000;
+        break;
+    default:
+        break;
+    }
+
+    // no strand
+    for (int i = 0; i < thread_count; i++)
+    {
+        boost::asio::post(ctx, [&](){
+            std::ostringstream oss;
+            oss << std::this_thread::get_id();
+            printf("hello boost::asio::post in io_context [%s]\n", oss.str().c_str());
+            for (int i = 0; i < loop_count; i++)
+            {
+                sum += 2;
+            }
+        });
+    }
+    
+    boost::thread_group tg;
+    for (int i = 0; i < thread_count; i++)
+    {
+        tg.create_thread(thread_func(i+1, ctx));
+    }
+    tg.join_all();
+
+    printf("[make_sum_to_100_million_without_strand, %d thread] sum : %d\n", thread_count, sum);
+}
+
+int main()
+{
+    int thread_count = 2; // 1, 2, 4, 8, 16
+    make_sum_to_100_million_without_strand(thread_count)
+    return 0;
+}
+```
+
+실행결과
+```
+[make_sum_to_100_million_without_strand, 2 thread] sum : 50614948
+```
+(위 예시의 경우에는 2개의 쓰레드에서) 핸들러 동기화를 수행하지 않는 경우에는 1억이 정상적으로 출력되지 않음을 볼 수 있다.
+
+```cpp
+#include <iostream>
+
+#include <boost/asio.hpp>
+#include <boost/thread.hpp>
+#include <boost/thread/detail/thread_group.hpp>
+
+int sum = 0;
+
+class thread_func
+{
+public:
+    thread_func(int idx, boost::asio::io_context& ctx) : idx_(idx), ctx_(ctx)
+    {
+
+    }
+
+    void operator()()
+    {
+        std::ostringstream oss;
+        oss << std::this_thread::get_id();
+        printf("io_context::run #%d thread [%s]\n", idx_, oss.str().c_str());
+        ctx_.run();
+    }
+
+private:
+    int idx_;
+    boost::asio::io_context& ctx_;
+};
+
+void make_sum_to_100_million_with_strand(int thread_count)
+{
+    boost::asio::io_context ctx;
+    boost::asio::io_context::strand strand(ctx);
+
+    int loop_count = 0;
+    switch (thread_count)
+    {
+    case 1:
+        loop_count = 50000000;
+        break;
+    case 2:
+        loop_count = 25000000;
+        break;
+    case 4:
+        loop_count = 12500000;
+        break;
+    case 8:
+        loop_count = 6250000;
+        break;
+    case 16:
+        loop_count = 3125000;
+        break;
+    default:
+        break;
+    }
+
+    // strand
+    for (int i = 0; i < thread_count; i++)
+    {
+        boost::asio::post(strand.wrap([&](){
+            std::ostringstream oss;
+            oss << std::this_thread::get_id();
+            printf("hello boost::asio::post in io_context [%s]\n", oss.str().c_str());
+            for (int i = 0; i < loop_count; i++)
+            {
+                sum += 2;
+            }
+        }));
+    }
+    
+    boost::thread_group tg;
+    for (int i = 0; i < thread_count; i++)
+    {
+        tg.create_thread(thread_func(i+1, ctx));
+    }
+    tg.join_all();
+
+    printf("[make_sum_to_100_million_with_strand, %d thread] sum : %d\n", thread_count, sum);
+}
+
+int main()
+{
+    int thread_count = 16; // 1, 2, 4, 8, 16
+    make_sum_to_100_million_with_strand(thread_count);
+    return 0;
+}
+```
+
+실행결과
+```
+[make_sum_to_100_million_with_strand, 16 thread] sum : 100000000
+```
+(위 예시의 경우에는 16개의 쓰레드에서) strand를 사용하여 핸들러 동기화를 수행하였기때문에 1억이 정상적으로 출력됨을 확인할 수 있다.
+
+<br>

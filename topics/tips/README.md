@@ -29,6 +29,9 @@
   - [\[tool\] 아파치 superset](#tool-아파치-superset)
   - [\[개발\] 코드 리뷰 방법](#개발-코드-리뷰-방법)
   - [\[c++\] boost::strand를 사용하는 이유](#c-booststrand를-사용하는-이유)
+  - [\[linux\] perf(performance counter for linux) 사용 방법](#linux-perfperformance-counter-for-linux-사용-방법)
+  - [\[linux\] iostat 사용 방법](#linux-iostat-사용-방법)
+  - [\[linux\] SAR(System Activity Reporter) 활용 방법](#linux-sarsystem-activity-reporter-활용-방법)
 
 <br>
 
@@ -1296,3 +1299,85 @@ int main()
 (위 예시의 경우에는 16개의 쓰레드에서) strand를 사용하여 핸들러 동기화를 수행하였기때문에 1억이 정상적으로 출력됨을 확인할 수 있다.
 
 <br>
+
+## [linux] perf(performance counter for linux) 사용 방법
+* https://velog.io/@mythos/Linux-Tutorial-11-%EC%BB%A4%EB%84%90-%EC%84%B1%EB%8A%A5-%EC%B8%A1%EC%A0%95-%EB%8F%84%EA%B5%AC-perf
+
+top 옵션은 현재 커널 내부에서 실행되는 함수(Symbol)들의 부하(Overhead) 비율을 스냅샵 형태로 표시한다.
+```
+perf top -p {확인할 특정 프로세스의 id}
+perf top -t {확인할 특정 쓰레드의 id}
+```
+
+stat 은 perf 수행 중 커널 내부에서 발생한 이벤트 처리에 대한 통계 정보를 보여준다.
+```
+perf stat {통계 정보를 확인할 명령어}
+```
+
+위에서 확인해본 top 옵션은 커널에서 실행하고 있는 정보들을 실시간으로 확인할 수 있다는 장점이 있지만, 반대로 내용이 실시간으로 변하기 때문에 분석하기에는 어려울 수 있다. record 옵션을 사용하면 이러한 분석 정보를 파일로 저장할 수 있다.
+```
+perf record -p {저장할 특정 프로세스의 id}
+perf reocrd -ag // 모든 프로세스의 정보 저장 및 스택 정보도 함께 저장
+```
+
+report 옵션은 record 에 의해 저장된 perf.data 파일을 분석하기 위해 사용되어질 수 있다.
+```
+perf report perf.data
+```
+
+<br>
+
+## [linux] iostat 사용 방법
+* https://blueyikim.tistory.com/556
+
+iostat이란? 디스크 입출력 통계를 표시하는 명령어
+
+```
+# iostat
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           8.08    0.00    2.56    3.12    0.09   86.15
+
+Device:            tps    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn
+vda             514.75      4862.98      3565.66 7167829260 5255628922
+```
+
+* tps: 초당 입출력 작업 건수. tps가 높다는 것은 CPU가 busy라는 의미임
+* KB_read/s: 초당 읽어들인 블록(512바이트) 수
+* KB_wrtn/s: 초당 쓰여진 블록(512바이트) 수
+* KB_read: 지금까지 읽어들인 블록(512바이트) 수
+* KB_wrtn: 지금까지 쓰여진 블록(512바이트) 수
+
+```
+# iostat -x
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           8.08    0.00    2.56    3.12    0.09   86.15
+
+Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util
+vda             110.63   196.79  305.96  208.78  4862.86  3565.57    32.75     1.56    3.04    1.31    5.56   0.22  11.21
+```
+
+* rrqm/s: 디바이스 큐에 대기중인 초당 읽기 요청의 건수
+* wrqm/s: 디바이스 큐에 대기중인 초당 쓰기 요청의 건수
+* r/s: 디바이스에 요청한 초당 읽기 요청의 건수
+* w/s: 디바이스에 요청한 초당 쓰기 요청의 건수
+* rsec/s: 디바이스에 초당 읽어들인 섹터의 개수
+* wsec/s: 디바이스에 초당 기록한 섹터의 개수
+* avgrq-sz: 디바이스에 요청한 초당 평균 데이터의 크기
+* avgqu-sz: 디바이스에 요청한 초당 평균 큐 길이
+* await: 디바이스에서 처리되기 위해서 요청된 I/O 평균 시간(밀리초). 큐에서 소요된 시간과 처리된 시간이 더해서 출력됨
+* svctm: 디바이스에서 처리한 I/O 평균 시간(밀리초)
+* %util: 디바이스에서 요청한 I/O 작업을 수행하기 위해 사용한 CPU 시간 비율. 이 값이 100%에 가까워지면 디바이스가 한계에 도달했다고 보면됨
+
+<br>
+
+## [linux] SAR(System Activity Reporter) 활용 방법
+* https://www.cubrid.com/CUBRIDwiki/71317
+
+/var/log/sa 경로에 (최근 30일 기준)일자 별로 sa와 sar 파일이 존재한다.
+
+sa 파일은 리눅스에서 아래와 같은 sar 명령어를 통해 열어볼 수 있다.
+```
+sar -A -f {sa파일명} | less
+```
+
+sar 파일은 sa파일의 결과를 텍스트 형태로 출력해둔 파일이다.

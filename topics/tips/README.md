@@ -1303,7 +1303,7 @@ int main()
 ## [linux] perf(performance counter for linux) 사용 방법
 * https://velog.io/@mythos/Linux-Tutorial-11-%EC%BB%A4%EB%84%90-%EC%84%B1%EB%8A%A5-%EC%B8%A1%EC%A0%95-%EB%8F%84%EA%B5%AC-perf
 
-top 옵션은 현재 커널 내부에서 실행되는 함수(Symbol)들의 부하(Overhead) 비율을 스냅샵 형태로 표시한다.
+top 옵션은 현재 커널 내부에서 실행되는 함수(Symbol)들의 부하(Overhead) 비율을 스냅샷 형태로 표시한다.
 ```
 perf top -p {확인할 특정 프로세스의 id}
 perf top -t {확인할 특정 쓰레드의 id}

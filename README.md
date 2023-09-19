@@ -119,7 +119,7 @@ C/C++ & Go 백엔드 개발자
 
 <br>
 
-### AgentMate 개발(추후 제목 변경 필요함!)
+### 레거시 모듈을 신규 언어(Golang)로 포팅
 
 - Golang을 사용하여 기존 (Java와 C/C++로 작업된)레거시 코드를 대체할 수 있는 모듈 개발
 - 최초 요구사항 분석에서부터 상위 및 세부설계 과정 전체를 경험
@@ -135,6 +135,7 @@ C/C++ & Go 백엔드 개발자
 - REST API 클라이언트 개발(C++)
   - boost::beast 라이브러리 활용
   - transfer-encoding에 따른 처리(chunked or not)
+- Publish/Subscribe 메시징 프로토콜인 MQTT를 활용하여 시그널 처리
 
 <br>
 

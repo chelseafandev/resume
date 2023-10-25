@@ -32,6 +32,7 @@
   - [\[linux\] perf(performance counter for linux) 사용 방법](#linux-perfperformance-counter-for-linux-사용-방법)
   - [\[linux\] iostat 사용 방법](#linux-iostat-사용-방법)
   - [\[linux\] SAR(System Activity Reporter) 활용 방법](#linux-sarsystem-activity-reporter-활용-방법)
+  - [\[linux\] SPEC 파일의 Source 경로에 명시된 파일을 다운로드 받는 방법](#linux-spec-파일의-source-경로에-명시된-파일을-다운로드-받는-방법)
 
 <br>
 
@@ -1381,3 +1382,20 @@ sar -A -f {sa파일명} | less
 ```
 
 sar 파일은 sa파일의 결과를 텍스트 형태로 출력해둔 파일이다.
+
+<br>
+
+## [linux] SPEC 파일의 Source 경로에 명시된 파일을 다운로드 받는 방법
+* https://stackoverflow.com/questions/33177450/how-do-i-get-rpmbuild-to-download-all-of-the-sources-for-a-particular-spec
+
+`spectool`을 사용하면 SPEC 파일에 명시된 Source 경로를 참조하여 자동으로 파일을 다운로드 받을 수 있다. 통상적으로 spectool을 사용하여 소스를 다운로드 받은 후 rpmbuild를 통해 RPM 파일을 생성한다.
+```
+$ cd
+$ pwd
+/home/centos
+$ cd /home/centos/rpmbuild
+$ ll
+BUILD  BUILDROOT  RPMS  SOURCES  SPECS  SRPMS
+$ spectool -C SOURCES/ -g SPECS/myspec.spec
+$ rpmbuild -ba SPECS/myspec.spec
+```

@@ -33,6 +33,26 @@
   - [\[linux\] iostat 사용 방법](#linux-iostat-사용-방법)
   - [\[linux\] SAR(System Activity Reporter) 활용 방법](#linux-sarsystem-activity-reporter-활용-방법)
   - [\[linux\] SPEC 파일의 Source 경로에 명시된 파일을 다운로드 받는 방법](#linux-spec-파일의-source-경로에-명시된-파일을-다운로드-받는-방법)
+  - [\[golang\] golang 소스 코드를 직접 빌드해서 빌드 환경 구축하는 방법](#golang-golang-소스-코드를-직접-빌드해서-빌드-환경-구축하는-방법)
+- [pwd](#pwd)
+- [mkdir go-src-1.4](#mkdir-go-src-14)
+- [tar -C /home/centos/jhlee/go-src-1.4 -xzf go1.4-bootstrap-20171003.tar.gz](#tar--c-homecentosjhleego-src-14--xzf-go14-bootstrap-20171003targz)
+- [cd go-src-1.4/go/src](#cd-go-src-14gosrc)
+- [export CGO\_ENABLED=0](#export-cgo_enabled0)
+- [./make.bash](#makebash)
+- [pwd](#pwd-1)
+- [mkdir go-src-1.17](#mkdir-go-src-117)
+- [tar -C /home/centos/jhlee/go-src-1.17 -xzf go1.17.src.tar.gz](#tar--c-homecentosjhleego-src-117--xzf-go117srctargz)
+- [cd go-src-1.17/go/src](#cd-go-src-117gosrc)
+- [export GOROOT\_BOOTSTRAP=/home/centos/jhlee/go-src-1.4/go](#export-goroot_bootstraphomecentosjhleego-src-14go)
+- [./all.bash](#allbash)
+- [pwd](#pwd-2)
+- [mkdir go-src-1.21.1](#mkdir-go-src-1211)
+- [tar -C /home/centos/jhlee/go-src-1.21.1 -xzf go1.21.1.src.tar.gz](#tar--c-homecentosjhleego-src-1211--xzf-go1211srctargz)
+- [cd go-src-1.21.1/go/src](#cd-go-src-1211gosrc)
+- [export GOROOT\_BOOTSTRAP=/home/centos/jhlee/go-src-1.17/go](#export-goroot_bootstraphomecentosjhleego-src-117go)
+- [./all.bash](#allbash-1)
+  - [ALL TESTS PASSED](#all-tests-passed)
 
 <br>
 
@@ -1399,3 +1419,73 @@ BUILD  BUILDROOT  RPMS  SOURCES  SPECS  SRPMS
 $ spectool -C SOURCES/ -g SPECS/myspec.spec
 $ rpmbuild -ba SPECS/myspec.spec
 ```
+
+<br>
+
+## [golang] golang 소스 코드를 직접 빌드해서 빌드 환경 구축하는 방법
+* https://go.dev/doc/install/source
+* https://go.dev/doc/toolchain
+* https://go.dev/blog/rebuild
+
+```
+1. Build Go 1.4(Go 1.4 was the last distribution in which the toolchain was written in C)
+```
+# pwd
+/home/centos/jhlee
+# mkdir go-src-1.4
+# tar -C /home/centos/jhlee/go-src-1.4 -xzf go1.4-bootstrap-20171003.tar.gz
+# cd go-src-1.4/go/src
+# export CGO_ENABLED=0
+# ./make.bash
+```
+
+2. Build Go 1.17 with Go 1.4
+```
+# pwd
+/home/centos/jhlee
+# mkdir go-src-1.17
+# tar -C /home/centos/jhlee/go-src-1.17 -xzf go1.17.src.tar.gz
+# cd go-src-1.17/go/src
+# export GOROOT_BOOTSTRAP=/home/centos/jhlee/go-src-1.4/go
+# ./all.bash
+```
+
+3. Build Go 1.21.1 with Go 1.17
+```
+# pwd
+/home/centos/jhlee
+# mkdir go-src-1.21.1
+# tar -C /home/centos/jhlee/go-src-1.21.1 -xzf go1.21.1.src.tar.gz
+# cd go-src-1.21.1/go/src
+# export GOROOT_BOOTSTRAP=/home/centos/jhlee/go-src-1.17/go
+# ./all.bash
+```
+
+4. Complete!
+```
+ALL TESTS PASSED
+---
+Installed Go for linux/amd64 in /home/centos/jhlee/go-src-1.21.1/go
+Installed commands in /home/centos/jhlee/go-src-1.21.1/go/bin
+*** You need to add /home/centos/jhlee/go-src-1.21.1/go/bin to your PATH.
+```
+
+---
+
+Building Go cmd/dist using /home/centos/jhlee/go-1.16. (go1.16.15 linux/amd64)
+found packages main (build.go) and building_Go_requires_Go_1_17_13_or_later (notgo117.go) in /home/centos/jhlee/goroot/src/cmd/dist
+```
+
+toolchain을 통해 빌드 후에 새롭게 생성되는 폴더
+* `bin/`
+* `pkg/`
+
+이후 Go 소스 코드 빌드 시에 필요한 폴더(`GOROOT`를 기준으로 아래 폴더의 위치를 파악함)
+* src/
+* pkg/
+* bin/
+  
+빌드 시에 설정해주어야할 `환경 변수`
+* `PATH`: `go`와 `gofmt` 바이너리가 포함된 `bin/`` 폴더 경로를 추가해주어야함
+* `GOROOT`: `src/`와 `pkg/` 폴더가 존재하는 경로를 추가해주어야함
+* `GOPROXY`: https://proxy.golang.org,direct 로 설정

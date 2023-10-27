@@ -34,25 +34,6 @@
   - [\[linux\] SAR(System Activity Reporter) 활용 방법](#linux-sarsystem-activity-reporter-활용-방법)
   - [\[linux\] SPEC 파일의 Source 경로에 명시된 파일을 다운로드 받는 방법](#linux-spec-파일의-source-경로에-명시된-파일을-다운로드-받는-방법)
   - [\[golang\] golang 소스 코드를 직접 빌드해서 빌드 환경 구축하는 방법](#golang-golang-소스-코드를-직접-빌드해서-빌드-환경-구축하는-방법)
-- [pwd](#pwd)
-- [mkdir go-src-1.4](#mkdir-go-src-14)
-- [tar -C /home/centos/jhlee/go-src-1.4 -xzf go1.4-bootstrap-20171003.tar.gz](#tar--c-homecentosjhleego-src-14--xzf-go14-bootstrap-20171003targz)
-- [cd go-src-1.4/go/src](#cd-go-src-14gosrc)
-- [export CGO\_ENABLED=0](#export-cgo_enabled0)
-- [./make.bash](#makebash)
-- [pwd](#pwd-1)
-- [mkdir go-src-1.17](#mkdir-go-src-117)
-- [tar -C /home/centos/jhlee/go-src-1.17 -xzf go1.17.src.tar.gz](#tar--c-homecentosjhleego-src-117--xzf-go117srctargz)
-- [cd go-src-1.17/go/src](#cd-go-src-117gosrc)
-- [export GOROOT\_BOOTSTRAP=/home/centos/jhlee/go-src-1.4/go](#export-goroot_bootstraphomecentosjhleego-src-14go)
-- [./all.bash](#allbash)
-- [pwd](#pwd-2)
-- [mkdir go-src-1.21.1](#mkdir-go-src-1211)
-- [tar -C /home/centos/jhlee/go-src-1.21.1 -xzf go1.21.1.src.tar.gz](#tar--c-homecentosjhleego-src-1211--xzf-go1211srctargz)
-- [cd go-src-1.21.1/go/src](#cd-go-src-1211gosrc)
-- [export GOROOT\_BOOTSTRAP=/home/centos/jhlee/go-src-1.17/go](#export-goroot_bootstraphomecentosjhleego-src-117go)
-- [./all.bash](#allbash-1)
-  - [ALL TESTS PASSED](#all-tests-passed)
 
 <br>
 
@@ -1429,7 +1410,6 @@ $ rpmbuild -ba SPECS/myspec.spec
 
 ```
 1. Build Go 1.4(Go 1.4 was the last distribution in which the toolchain was written in C)
-```
 # pwd
 /home/centos/jhlee
 # mkdir go-src-1.4

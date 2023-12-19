@@ -1450,12 +1450,6 @@ Installed commands in /home/centos/jhlee/go-src-1.21.1/go/bin
 *** You need to add /home/centos/jhlee/go-src-1.21.1/go/bin to your PATH.
 ```
 
----
-
-Building Go cmd/dist using /home/centos/jhlee/go-1.16. (go1.16.15 linux/amd64)
-found packages main (build.go) and building_Go_requires_Go_1_17_13_or_later (notgo117.go) in /home/centos/jhlee/goroot/src/cmd/dist
-```
-
 toolchain을 통해 빌드 후에 새롭게 생성되는 폴더
 * `bin/`
 * `pkg/`
@@ -1469,3 +1463,6 @@ toolchain을 통해 빌드 후에 새롭게 생성되는 폴더
 * `PATH`: `go`와 `gofmt` 바이너리가 포함된 `bin/`` 폴더 경로를 추가해주어야함
 * `GOROOT`: `src/`와 `pkg/` 폴더가 존재하는 경로를 추가해주어야함
 * `GOPROXY`: https://proxy.golang.org,direct 로 설정
+
+Go 1.4 버전 toolchain을 사용하여 Go 1.17버전을 한번 더 빌드하는 이유는?
+* Go 1.21 버전 이상의 소스 코드를 go toolchain을 통해 빌드하기 위해서는 Go 1.17 버전 이상의 toolchain이 필요하기 때문에 (Go 1.4 버전의 toolchain으로 Go 1.21 버전 이상의 소스 코드를 빌드하려고 하면 에러 발생함)

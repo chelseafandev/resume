@@ -34,6 +34,7 @@
   - [\[linux\] SAR(System Activity Reporter) 활용 방법](#linux-sarsystem-activity-reporter-활용-방법)
   - [\[linux\] SPEC 파일의 Source 경로에 명시된 파일을 다운로드 받는 방법](#linux-spec-파일의-source-경로에-명시된-파일을-다운로드-받는-방법)
   - [\[golang\] golang 소스 코드를 직접 빌드해서 빌드 환경 구축하는 방법](#golang-golang-소스-코드를-직접-빌드해서-빌드-환경-구축하는-방법)
+  - [\[linux\] eu-stack](#linux-eu-stack)
 
 <br>
 
@@ -1466,3 +1467,39 @@ toolchain을 통해 빌드 후에 새롭게 생성되는 폴더
 
 Go 1.4 버전 toolchain을 사용하여 Go 1.17버전을 한번 더 빌드하는 이유는?
 * Go 1.21 버전 이상의 소스 코드를 go toolchain을 통해 빌드하기 위해서는 Go 1.17 버전 이상의 toolchain이 필요하기 때문에 (Go 1.4 버전의 toolchain으로 Go 1.21 버전 이상의 소스 코드를 빌드하려고 하면 에러 발생함)
+
+<br>
+
+## [linux] eu-stack
+* https://sourceware.org/elfutils/
+* https://stackoverflow.com/questions/12394935/getting-stacktrace-of-all-threads-without-attaching-gdb
+
+eu-stack을 사용하면 현재 실행중인 프로세스의 쓰레드별 stacktrace 정보를 확인할 수 있다.
+
+```
+$ eu-stack -p 2209
+PID 2209 - process
+TID 2209:
+#0  0x00007f53476b667b __poll
+#1  0x00007f5348f98e99 g_main_context_iterate.isra.23
+#2  0x00007f5348f99232 g_main_loop_run
+#3  0x000055e604b1e56a main
+#4  0x00007f53475cc00a __libc_start_main
+#5  0x000055e604b1e76a _start
+TID 2223:
+#0  0x00007f53476b667b __poll
+#1  0x00007f5348f98e99 g_main_context_iterate.isra.23
+#2  0x00007f5348f98fac g_main_context_iteration
+#3  0x00007f5348f98ff1 glib_worker_main
+#4  0x00007f5348fc0486 g_thread_proxy
+#5  0x00007f534813761b start_thread
+#6  0x00007f53476c2c2f __clone
+TID 2224:
+#0  0x00007f53476b667b __poll
+#1  0x00007f5348f98e99 g_main_context_iterate.isra.23
+#2  0x00007f5348f99232 g_main_loop_run
+#3  0x00007f5349581b56 gdbus_shared_thread_func
+#4  0x00007f5348fc0486 g_thread_proxy
+#5  0x00007f534813761b start_thread
+#6  0x00007f53476c2c2f __clone
+```

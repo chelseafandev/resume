@@ -35,6 +35,7 @@
   - [\[linux\] SPEC 파일의 Source 경로에 명시된 파일을 다운로드 받는 방법](#linux-spec-파일의-source-경로에-명시된-파일을-다운로드-받는-방법)
   - [\[golang\] golang 소스 코드를 직접 빌드해서 빌드 환경 구축하는 방법](#golang-golang-소스-코드를-직접-빌드해서-빌드-환경-구축하는-방법)
   - [\[linux\] eu-stack](#linux-eu-stack)
+  - [\[golang\] gin.HandlerFunc에 파라미터 추가하는 방법](#golang-ginhandlerfunc에-파라미터-추가하는-방법)
 
 <br>
 
@@ -1328,6 +1329,11 @@ report 옵션은 record 에 의해 저장된 perf.data 파일을 분석하기 �
 perf report perf.data
 ```
 
+perf.data 파일의 이름이 기본 값(perf.data)이 아닌 경우에는 -i 옵션을 사용하여 input 파일의 이름을 명시할 수 있다.
+```
+perf report -i perf_20240107.data
+```
+
 <br>
 
 ## [linux] iostat 사용 방법
@@ -1502,4 +1508,26 @@ TID 2224:
 #4  0x00007f5348fc0486 g_thread_proxy
 #5  0x00007f534813761b start_thread
 #6  0x00007f53476c2c2f __clone
+```
+
+<br>
+
+## [golang] gin.HandlerFunc에 파라미터 추가하는 방법
+* https://stackoverflow.com/questions/34046194/how-to-pass-arguments-to-router-handlers-in-golang-using-gin-web-framework
+
+gin.HandlerFunc로 사용할 함수(여기서는 HelloWorld) 내부에 *gin.Context을 파라미터로 받는 closure를 정의하고 이 closure를 인자로 받는 gin.HandlerFunc를 반환하도록 한다.
+
+```go
+func HelloWorld(use string) gin.HandlerFunc {
+	// closure!
+    fn := func(c *gin.Context) {
+		if use == "off" {
+			return
+		}
+
+		...
+	}
+
+	return gin.HandlerFunc(fn)
+}
 ```

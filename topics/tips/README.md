@@ -36,6 +36,7 @@
   - [\[golang\] golang 소스 코드를 직접 빌드해서 빌드 환경 구축하는 방법](#golang-golang-소스-코드를-직접-빌드해서-빌드-환경-구축하는-방법)
   - [\[linux\] eu-stack](#linux-eu-stack)
   - [\[golang\] gin.HandlerFunc에 파라미터 추가하는 방법](#golang-ginhandlerfunc에-파라미터-추가하는-방법)
+  - [\[golang\] go toolchains을 통한 빌드 환경 구축 방법](#golang-go-toolchains을-통한-빌드-환경-구축-방법)
 
 <br>
 
@@ -637,7 +638,7 @@ chown postgres.postgres server.key
 
 1.4. 이제 서버 개인키에 기반한 서버 인증서를 생성해야한다.
 ```bash
-openssl req -new -key server.key -days 3650 -out server.crt -x509 -subj '/C=KR/ST=Seoul/L=Seoul/O=Somansa/CN=somansa.com/emailAddress=bluetomorrow@somansa.com'
+openssl req -new -key server.key -days 3650 -out server.crt -x509 -subj '/C=KR/ST=Seoul/L=Seoul/O=ChelseafanDev/CN=chelseafandev.com/emailAddress=chelseafandev@gmail.com'
 ```
 
 1.5. 우리는 직접 인증서를 서명할 것이므로 생성된 서버 인증서는 신뢰할 수 있는 루트 인증서로도 사용될 수 있다. 적절한 이름으로 서버 인증서를 복사하자.
@@ -677,7 +678,7 @@ openssl rsa -in /tmp/postgresql.key -out /tmp/postgresql.key
 
 2.2. 다음으로 클라이언트 인증서를 생성하고 그것을 위에서 생성했던 신뢰할 수 있는 루트 인증서(root.crt)로 서명한다.
 ```bash
-openssl req -new -key /tmp/postgresql.key -out /tmp/postgresql.csr -subj '/C=KR/ST=Seoul/L=Seoul/O=Somansa/CN=postgres'
+openssl req -new -key /tmp/postgresql.key -out /tmp/postgresql.csr -subj '/C=KR/ST=Seoul/L=Seoul/O=ChelseafanDev/CN=postgres'
 openssl x509 -req -in /tmp/postgresql.csr -CA root.crt -CAkey server.key -out /tmp/postgresql.crt -CAcreateserial
 ```
 
@@ -1531,3 +1532,68 @@ func HelloWorld(use string) gin.HandlerFunc {
 	return gin.HandlerFunc(fn)
 }
 ```
+
+<br>
+
+## [golang] go toolchains을 통한 빌드 환경 구축 방법
+* CentOS 7.9 환경에서 테스트 진행
+
+1. Build Go 1.4
+```
+# pwd
+/home/centos/jhlee
+# mkdir go-src-1.4
+# tar -C /home/centos/jhlee/go-src-1.4 -xzf go1.4-bootstrap-20171003.tar.gz
+# cd go-src-1.4/src
+# export CGO_ENABLED=0
+# ./make.bash
+```
+
+> **Go 1.4 버전 toolchain을 사용하여 Go 1.17버전을 한번 더 빌드하는 이유는?**
+> 
+> Go 1.21 버전 이상의 소스 코드를 go toolchain을 통해 빌드하기 위해서는 Go 1.17 버전 이상의 toolchain이 필요하기 때문에(Go 1.4 버전의 toolchain으로 Go 1.21 버전 이상의 소스 코드를 빌드하려고 하면 에러 발생함)
+
+2. Build Go 1.17 with Go 1.4
+```
+# pwd
+/home/centos/jhlee
+# mkdir go-src-1.17
+# tar -C /home/centos/jhlee/go-src-1.17 -xzf go1.17.src.tar.gz
+# cd go-src-1.17/src
+# export GOROOT_BOOTSTRAP=/home/centos/jhlee/go-src-1.4/go
+# ./all.bash
+```
+
+3. Build Go 1.21.1 with Go 1.17
+```
+# pwd
+/home/centos/jhlee
+# mkdir go-src-1.21.1
+# tar -C /home/centos/jhlee/go-src-1.21.1 -xzf go1.21.1.src.tar.gz
+# cd go-src-1.21.1/go/src
+# export GOROOT_BOOTSTRAP=/home/centos/jhlee/go-src-1.17/go
+# ./all.bash
+```
+
+4. Complete!
+```
+ALL TESTS PASSED
+---
+Installed Go for linux/amd64 in /home/centos/jhlee/go-src-1.21.1/go
+Installed commands in /home/centos/jhlee/go-src-1.21.1/go/bin
+*** You need to add /home/centos/jhlee/go-src-1.21.1/go/bin to your PATH.
+
+---
+
+Building Go cmd/dist using /home/centos/jhlee/go-1.16. (go1.16.15 linux/amd64)
+found packages main (build.go) and building_Go_requires_Go_1_17_13_or_later (notgo117.go) in /home/centos/jhlee/goroot/src/cmd/dist
+```
+
+* toolchain을 통해 **빌드 후에 생성되는 폴더**는?
+  * `bin/`
+  * `pkg/`
+
+* 이후 Go 프로젝트 빌드 시 필요한 파일들(GOROOT 기준으로 아래 폴더를 찾음)
+  * `src/`
+  * `pkg/`
+  * `bin/`

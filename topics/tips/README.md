@@ -37,7 +37,7 @@
   - [\[linux\] eu-stack](#linux-eu-stack)
   - [\[golang\] gin.HandlerFunc에 파라미터 추가하는 방법](#golang-ginhandlerfunc에-파라미터-추가하는-방법)
   - [\[golang\] go toolchains을 통한 빌드 환경 구축 방법](#golang-go-toolchains을-통한-빌드-환경-구축-방법)
-
+  - [\[git\] git 자주 사용하는 명령어](#git-git-자주-사용하는-명령어)
 <br>
 
 ## [c++] 문자열 파싱 방법
@@ -1597,3 +1597,35 @@ found packages main (build.go) and building_Go_requires_Go_1_17_13_or_later (not
   * `src/`
   * `pkg/`
   * `bin/`
+ 
+<br>
+
+## [git] git 자주 사용하는 명령어
+
+* 다른 브랜치에 있는 커밋 내용을 가져오기
+```
+$ git checkout {커밋 내용을 추가할 브랜치}
+$ git cherry-pick {커밋번호}
+```
+
+* Git 원격 저장소 주소 변경
+아래 커맨드를 통해 현재 remote 주소 정보를 확인할 수 있음
+```
+$ git remote -v
+```
+
+원격 저장소 주소를 변경하는 커맨드는 아래와 같음
+```
+$ git remote set-url origin {변경할repo주소}
+```
+
+* 코드 수정 내역 확인하기
+```
+$ git blame {파일명}
+$ git blame -L 시작라인번호,종료라인번호 {파일명}
+```
+
+아래 커맨드를 통해 특정 커밋의 세부 변경 사항을 확인할 수 있음
+```
+$ git show {커밋번호}
+```

@@ -1629,3 +1629,20 @@ $ git blame -L 시작라인번호,종료라인번호 {파일명}
 ```
 $ git show {커밋번호}
 ```
+
+4. commit없이 변경 사항 임시 저장하기
+* 아래 커맨드를 통해 현재 브랜치의 변경 사항을 임시 저장할 수 있음
+```
+$ git stash
+```
+
+* 아래 커맨드를 통해 현재 stash 목록을 확인할 수 있음
+```
+$ git stash list
+stash@{0}: WIP on feature/add_wkloggerimpl: 917106b1 Merge branch 'fix/edlpinterface_segfault' into 'dist'
+```
+
+* 아래 커맨드를 통해 임시 저장된 변경 사항을 브랜치에 다시 반영할 수 있음
+```
+$ git stash pop stash@{0}
+```

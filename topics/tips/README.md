@@ -38,7 +38,7 @@
   - [\[golang\] gin.HandlerFunc에 파라미터 추가하는 방법](#golang-ginhandlerfunc에-파라미터-추가하는-방법)
   - [\[golang\] go toolchains을 통한 빌드 환경 구축 방법](#golang-go-toolchains을-통한-빌드-환경-구축-방법)
   - [\[git\] git 자주 사용하는 명령어](#git-git-자주-사용하는-명령어)
-<br>
+  - [\[MAC\] 맥북 자주 사용하는 명령어는](#mac-맥북-자주-사용하는-명령어는)
 
 ## [c++] 문자열 파싱 방법
 전체 문자열 중 일부가 target 문자열에 매칭되는지 여부를 확인하기 위한 과정 중에 추출된 부분 문자열에 대하여 openssl 라이브러리에서 제공하는 MD5 함수를 호출해야하는 작업이 필요했습니다. 아래 [MD5 함수의 정의](https://www.openssl.org/docs/man1.1.1/man3/MD5.html)를 살펴보면 md5 message digest를 생성할 대상의 시작 지점을 가리키는 포인터(d)와 해당 시작 지점에서부터 얼마나 떨어져 있는지를 나타내는 길이(n), 그리고 생성된 md5 message digest를 저장할 공간을 가리키는 포인터(md)를 함수의 인자로 받고있는 것을 확인할 수 있습니다.
@@ -1652,3 +1652,24 @@ stash@{0}: WIP on feature/add_wkloggerimpl: 917106b1 Merge branch 'fix/edlpinter
 ```
 $ git stash pop stash@{0}
 ```
+
+<br>
+
+## [MAC] 맥북 자주 사용하는 명령어는
+* https://support.apple.com/ko-kr/102650
+
+* 파일 실행 : command + O 또는 command + 방향키 아래
+* 파일 삭제 : command + backsace
+* 라인 맨끝으로 커서 이동 : command + 방향키 오른쪽
+* 라인 맨앞으로 커서 이동 : command + 방향키 왼쪽
+* 응용 프로그램 종료 : command + Q
+* 복사 : command + C
+* 붙여넣기 : command + V
+* 오려두기 : command + X
+* Space 추가 : 응용 프로그램 폴더에 있는 `Mission Control` 앱 열기
+* Space 전환 : control + 방향키 좌/우
+* 선택한 부분 볼드체로 변환 : command + B
+* 선택한 부분 이탤릭체로 변환 : command + I
+* 실행 중인 프로그램 목록 확인 : command + tab
+* Spotlight 검색창 띄우기 : command + spacebar
+* 화면 캡쳐 : command + shift + 5

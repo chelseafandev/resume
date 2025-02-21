@@ -39,6 +39,7 @@
   - [\[golang\] go toolchains을 통한 빌드 환경 구축 방법](#golang-go-toolchains을-통한-빌드-환경-구축-방법)
   - [\[git\] git 자주 사용하는 명령어](#git-git-자주-사용하는-명령어)
   - [\[MAC\] 맥북 자주 사용하는 명령어는](#mac-맥북-자주-사용하는-명령어는)
+  - [\[c++\] shared\_ptr은 thread-safe한가?](#c-shared_ptr은-thread-safe한가)
 
 ## [c++] 문자열 파싱 방법
 전체 문자열 중 일부가 target 문자열에 매칭되는지 여부를 확인하기 위한 과정 중에 추출된 부분 문자열에 대하여 openssl 라이브러리에서 제공하는 MD5 함수를 호출해야하는 작업이 필요했습니다. 아래 [MD5 함수의 정의](https://www.openssl.org/docs/man1.1.1/man3/MD5.html)를 살펴보면 md5 message digest를 생성할 대상의 시작 지점을 가리키는 포인터(d)와 해당 시작 지점에서부터 얼마나 떨어져 있는지를 나타내는 길이(n), 그리고 생성된 md5 message digest를 저장할 공간을 가리키는 포인터(md)를 함수의 인자로 받고있는 것을 확인할 수 있습니다.
@@ -1673,3 +1674,30 @@ $ git stash pop stash@{0}
 * 실행 중인 프로그램 목록 확인 : command + tab
 * Spotlight 검색창 띄우기 : command + spacebar
 * 화면 캡쳐 : command + shift + 5
+
+<br>
+
+## [c++] shared_ptr은 thread-safe한가?
+* https://stackoverflow.com/questions/40223599/what-is-the-difference-between-stdshared-ptr-and-stdatomicstdshared-ptr
+
+shared_ptr을 copy하는 작업은 control block이 변경(reference count 증가)되는 것이므로 atomic이기 때문에 thread-safe하다.
+하지만 shared_ptr가 실제 가리키는 객체는 atomic 하지 않으므로 shared_ptr이 가리키는 객체를 변경하는 작업에는 thread-safe하게 만드는 동기화 작업(lock)이 필요하다.
+
+> The atomic "thing" in shared_ptr is not the shared pointer itself, but the control block it points to. meaning that as long as you don't mutate the shared_ptr across multiple threads, you are ok. do note that copying a shared_ptr only mutates the control block, and not the shared_ptr itself.
+```cpp
+std::shared_ptr<int> ptr = std::make_shared<int>(4);
+for (auto i =0;i<10;i++){
+   std::thread([ptr]{ auto copy = ptr; }).detach(); //ok, only mutates the control block 
+}
+```
+
+> Mutating the shared pointer itself, such as assigning it different values from multiple threads, is a data race, for example:
+```cpp
+std::shared_ptr<int> ptr = std::make_shared<int>(4);
+std::thread threadA([&ptr]{
+   ptr = std::make_shared<int>(10);
+});
+std::thread threadB([&ptr]{
+   ptr = std::make_shared<int>(20);
+}); 
+```
